@@ -1,0 +1,12 @@
+{
+  "name": "salons-daloa",
+  "version": "1.0.0",
+  "description": "Site web des salons de coiffure à Daloa avec back-end et administration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

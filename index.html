@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salons de coiffure Daloa</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="container">
+      <h1>Salons de coiffure à Daloa</h1>
+      <p>Inscription pour les coiffeurs et coiffeuses femmes et hommes.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="form-section">
+      <h2>Inscrivez votre salon</h2>
+      <form id="registration-form">
+        <label for="salonName">Nom du salon</label>
+        <input type="text" id="salonName" name="salonName" required>
+
+        <label for="ownerName">Nom du coiffeur / coiffeuse</label>
+        <input type="text" id="ownerName" name="ownerName" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="phone">Téléphone</label>
+        <input type="tel" id="phone" name="phone" required>
+
+        <label for="gender">Type de salon</label>
+        <select id="gender" name="gender" required>
+          <option value="mixte">Mixte (femme et homme)</option>
+          <option value="femme">Femme</option>
+          <option value="homme">Homme</option>
+        </select>
+
+        <label for="address">Adresse</label>
+        <input type="text" id="address" name="address" required placeholder="Daloa, Côte d'Ivoire">
+
+        <label for="services">Services proposés</label>
+        <textarea id="services" name="services" rows="3" placeholder="Coupe, tresses, coloration..."></textarea>
+
+        <button type="submit">Envoyer l'inscription</button>
+      </form>
+      <p class="info">Les salons inscrits apparaîtront ci-dessous.</p>
+    </section>
+
+    <section class="list-section">
+      <h2>Salons inscrits</h2>
+      <div id="salon-list" class="salon-list">
+        <p>Aucun salon inscrit pour l'instant.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
