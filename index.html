@@ -1,60 +1,86 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Salons de coiffure Daloa</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Belhotel After Work | Hôtel de luxe</title>
+  <meta name="description" content="Belhotel After Work, un hôtel de luxe avec chambres élégantes, restaurant gastronomique et bar lounge." />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="hero">
-    <div class="container">
-      <h1>Salons de coiffure à Daloa</h1>
-      <p>Inscription pour les coiffeurs et coiffeuses femmes et hommes.</p>
+  <header class="hero hero-home">
+    <nav class="top-nav">
+      <a class="brand" href="index.html">BELHOTEL</a>
+      <button class="menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="site-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="nav-links" id="site-nav">
+        <a href="index.html" class="active">Accueil</a>
+        <a href="chambres.html">Chambres</a>
+        <a href="restaurant.html">Restaurant</a>
+        <a href="bar.html">Bar</a>
+        <a href="/admin/login" class="admin-link">Connexion admin</a>
+      </div>
+    </nav>
+
+    <div class="hero-content">
+      <p class="eyebrow">Complexe Belhotel After Work</p>
+      <h1>Un séjour d’exception entre élégance et détente</h1>
+      <p>Découvrez un hôtel raffiné, un restaurant gastronomique et un bar lounge au cœur d’un cadre unique.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="chambres.html">Réserver une chambre</a>
+        <a class="btn btn-secondary" href="/admin/login">Connexion admin</a>
+      </div>
     </div>
   </header>
 
-  <main class="container">
-    <section class="form-section">
-      <h2>Inscrivez votre salon</h2>
-      <form id="registration-form">
-        <label for="salonName">Nom du salon</label>
-        <input type="text" id="salonName" name="salonName" required>
-
-        <label for="ownerName">Nom du coiffeur / coiffeuse</label>
-        <input type="text" id="ownerName" name="ownerName" required>
-
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required>
-
-        <label for="phone">Téléphone</label>
-        <input type="tel" id="phone" name="phone" required>
-
-        <label for="gender">Type de salon</label>
-        <select id="gender" name="gender" required>
-          <option value="mixte">Mixte (femme et homme)</option>
-          <option value="femme">Femme</option>
-          <option value="homme">Homme</option>
-        </select>
-
-        <label for="address">Adresse</label>
-        <input type="text" id="address" name="address" required placeholder="Daloa, Côte d'Ivoire">
-
-        <label for="services">Services proposés</label>
-        <textarea id="services" name="services" rows="3" placeholder="Coupe, tresses, coloration..."></textarea>
-
-        <button type="submit">Envoyer l'inscription</button>
-      </form>
-      <p class="info">Les salons inscrits apparaîtront ci-dessous.</p>
-    </section>
-
-    <section class="list-section">
-      <h2>Salons inscrits</h2>
-      <div id="salon-list" class="salon-list">
-        <p>Aucun salon inscrit pour l'instant.</p>
+  <main>
+    <section class="section intro-section">
+      <div>
+        <p class="eyebrow">Bienvenue</p>
+        <h2>Le confort, la cuisine et l’animation au meilleur niveau</h2>
+        <p>Belhotel After Work vous accueille pour des séjours reposants, des repas raffinés et des moments de plaisir en soirée.</p>
+      </div>
+      <div class="highlights">
+        <div class="highlight-card">
+          <h3>Chambres élégantes</h3>
+          <p>Confort premium, literie soignée et ambiance chaleureuse.</p>
+        </div>
+        <div class="highlight-card">
+          <h3>Restaurant gastronomique</h3>
+          <p>Des plats raffinés préparés avec soin pour chaque repas.</p>
+        </div>
+        <div class="highlight-card">
+          <h3>Bar lounge</h3>
+          <p>Cocktails signatures et ambiance feutrée pour vos soirées.</p>
+        </div>
       </div>
     </section>
+
+    <section class="section cards-section">
+      <article class="feature-card">
+        <h3>Hôtel de luxe</h3>
+        <p>Des espaces modernes et confortables pour un séjour inoubliable.</p>
+        <a href="chambres.html">Voir les chambres</a>
+      </article>
+      <article class="feature-card">
+        <h3>Restaurant</h3>
+        <p>Une cuisine riche, variée et parfaitement maîtrisée.</p>
+        <a href="restaurant.html">Voir le restaurant</a>
+      </article>
+      <article class="feature-card">
+        <h3>Bar Lounge</h3>
+        <p>Une ambiance élégante pour profiter d’un moment convivial.</p>
+        <a href="bar.html">Découvrir le bar</a>
+      </article>
+    </section>
   </main>
+
+  <footer class="footer">
+    <p>© 2026 Belhotel After Work. Tous droits réservés.</p>
+  </footer>
 
   <script src="script.js"></script>
 </body>

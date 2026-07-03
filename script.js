@@ -1,58 +1,171 @@
-const form = document.getElementById('registration-form');
-const salonList = document.getElementById('salon-list');
-
-function loadSalons() {
-  const savedSalons = localStorage.getItem('daloaSalons');
-  return savedSalons ? JSON.parse(savedSalons) : [];
-}
-
-function saveSalons(salons) {
-  localStorage.setItem('daloaSalons', JSON.stringify(salons));
-}
-
-function renderSalons() {
-  const salons = loadSalons();
-  salonList.innerHTML = '';
-
-  if (salons.length === 0) {
-    salonList.innerHTML = '<p>Aucun salon inscrit pour l\'instant.</p>';
-    return;
+document.addEventListener('DOMContentLoaded', () => {
+  const year = document.getElementById('year');
+  if (year) {
+    year.textContent = new Date().getFullYear();
   }
 
-  salons.forEach((salon) => {
-    const card = document.createElement('article');
-    card.className = 'salon-card';
-    card.innerHTML = `
-      <h3>${salon.salonName}</h3>
-      <p><strong>Coiffeur(se) :</strong> ${salon.ownerName}</p>
-      <p><strong>Type :</strong> ${salon.gender}</p>
-      <p><strong>Adresse :</strong> ${salon.address}</p>
-      <p><strong>Téléphone :</strong> ${salon.phone}</p>
-      <p><strong>Services :</strong> ${salon.services || 'Non précisé'}</p>
-    `;
-    salonList.appendChild(card);
-  });
-}
+  const toggle = document.querySelector('.menu-toggle');
+  const navLinks = document.querySelector('.nav-links');
 
-form.addEventListener('submit', (event) => {
-  event.preventDefault();
+  if (toggle && navLinks) {
+    toggle.addEventListener('click', () => {
+      const isOpen = toggle.classList.toggle('active');
+      toggle.setAttribute('aria-expanded', String(isOpen));
+      navLinks.classList.toggle('open', isOpen);
+    });
 
-  const newSalon = {
-    salonName: form.salonName.value.trim(),
-    ownerName: form.ownerName.value.trim(),
-    email: form.email.value.trim(),
-    phone: form.phone.value.trim(),
-    gender: form.gender.value,
-    address: form.address.value.trim(),
-    services: form.services.value.trim(),
+    navLinks.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        toggle.classList.remove('active');
+        toggle.setAttribute('aria-expanded', 'false');
+        navLinks.classList.remove('open');
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!toggle.contains(event.target) && !navLinks.contains(event.target) && navLinks.classList.contains('open')) {
+        toggle.classList.remove('active');
+        toggle.setAttribute('aria-expanded', 'false');
+        navLinks.classList.remove('open');
+      }
+    });
+  }
+
+  const reserveButtons = document.querySelectorAll('.reserve-btn');
+  const previewButtons = document.querySelectorAll('.preview-btn');
+  const bookingRoomInput = document.getElementById('booking-room');
+  const bookingModal = document.getElementById('booking-modal');
+  const bookingModalClose = document.getElementById('booking-modal-close');
+  const modal = document.getElementById('room-modal');
+  const modalImage = document.getElementById('modal-image');
+  const modalTitle = document.getElementById('modal-title');
+  const modalDescription = document.getElementById('modal-description');
+  const closeModalButton = document.getElementById('modal-close');
+  const bookingForm = document.getElementById('booking-form');
+  const bookingMessage = document.getElementById('booking-message');
+
+  const openBookingModal = (roomName) => {
+    if (!bookingModal || !bookingRoomInput) return;
+    bookingRoomInput.value = roomName || '';
+    if (bookingMessage) {
+      bookingMessage.textContent = '';
+    }
+    bookingModal.hidden = false;
+    bookingRoomInput.focus();
   };
 
-  const salons = loadSalons();
-  salons.push(newSalon);
-  saveSalons(salons);
-  renderSalons();
-  form.reset();
-  form.salonName.focus();
-});
+  const closeBookingModal = () => {
+    if (!bookingModal) return;
+    bookingModal.hidden = true;
+  };
 
-renderSalons();
+  reserveButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const room = button.getAttribute('data-room');
+      openBookingModal(room || '');
+    });
+  });
+
+  previewButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!modal || !modalImage || !modalTitle || !modalDescription) return;
+      modalImage.src = button.getAttribute('data-image') || '';
+      modalImage.alt = button.getAttribute('data-title') || 'Photo de la chambre';
+      modalTitle.textContent = button.getAttribute('data-title') || 'Chambre';
+      modalDescription.textContent = button.getAttribute('data-description') || '';
+      modal.hidden = false;
+    });
+  });
+
+  const closeModal = () => {
+    if (modal) {
+      modal.hidden = true;
+    }
+  };
+
+  closeModalButton?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', (event) => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  bookingModalClose?.addEventListener('click', closeBookingModal);
+  bookingModal?.addEventListener('click', (event) => {
+    if (event.target === bookingModal) {
+      closeBookingModal();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      if (modal && !modal.hidden) {
+        closeModal();
+      }
+      if (bookingModal && !bookingModal.hidden) {
+        closeBookingModal();
+      }
+    }
+  });
+
+  if (bookingForm && bookingMessage) {
+    bookingForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const formData = new FormData(bookingForm);
+      const payload = Object.fromEntries(formData.entries());
+      const name = payload.name?.toString().trim() || 'Client';
+      const room = payload.room?.toString().trim() || 'chambre';
+
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        bookingMessage.textContent = `Merci ${name} ! Votre demande de réservation pour ${room} a bien été enregistrée. Nous vous contacterons rapidement.`;
+        bookingForm.reset();
+        if (bookingRoomInput) {
+          bookingRoomInput.value = '';
+        }
+      } else {
+        bookingMessage.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+      }
+    });
+  }
+
+  const list = document.getElementById('items-list');
+  if (!list) return;
+
+  const page = document.body.dataset.page;
+  const endpoint = page === 'restaurant'
+    ? '/api/restaurant'
+    : page === 'bar'
+      ? '/api/bar'
+      : '/api/rooms';
+
+  fetch(endpoint)
+    .then((response) => response.json())
+    .then((items) => {
+      if (!items.length) {
+        list.innerHTML = '<p class="empty-state">Aucun élément disponible pour le moment.</p>';
+        return;
+      }
+
+      list.innerHTML = '';
+      items.forEach((item) => {
+        const card = document.createElement('article');
+        card.className = page === 'bar' ? 'bar-card' : page === 'restaurant' ? 'menu-card' : 'room-card';
+        card.innerHTML = `
+          ${item.image ? `<img src="${item.image}" alt="${item.name}" class="item-image" />` : ''}
+          <h3>${item.name}</h3>
+          <p>${item.description || ''}</p>
+          <p class="price-tag">${Number(item.price).toLocaleString('fr-FR')} FCFA</p>
+        `;
+        list.appendChild(card);
+      });
+    })
+    .catch(() => {
+      list.innerHTML = '<p class="empty-state">Impossible de charger les données.</p>';
+    });
+});

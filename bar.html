@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Belhotel | Bar Lounge</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero hero-bar">
+    <nav class="top-nav">
+      <a class="brand" href="index.html">BELHOTEL</a>
+      <button class="menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="site-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="nav-links" id="site-nav">
+        <a href="index.html">Accueil</a>
+        <a href="chambres.html">Chambres</a>
+        <a href="restaurant.html">Restaurant</a>
+        <a href="bar.html" class="active">Bar</a>
+        <a href="/admin/login" class="admin-link">Connexion admin</a>
+      </div>
+    </nav>
+    <div class="hero-content">
+      <p class="eyebrow">Bar Lounge</p>
+      <h1>Des cocktails signatures dans une ambiance feutrée</h1>
+      <p>Profitez d’une soirée élégante, autour de boissons raffinées et d’un cadre sophistiqué.</p>
+      <div class="hero-actions">
+        <a class="btn btn-secondary" href="/admin/login">Connexion admin</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section grid-3">
+      <article class="bar-card">
+        <h3>Bar Standard</h3>
+        <p>Un espace convivial pour des moments détendus.</p>
+      </article>
+      <article class="bar-card">
+        <h3>Salon VIP</h3>
+        <p>Un cadre plus intime avec un service prioritaire.</p>
+      </article>
+      <article class="bar-card">
+        <h3>Expérience VVIP</h3>
+        <p>Une soirée premium avec une ambiance exclusive.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© <span id="year"></span> Belhotel After Work. Tous droits réservés.</p>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>

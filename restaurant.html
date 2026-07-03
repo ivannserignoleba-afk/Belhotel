@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Belhotel | Restaurant</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero hero-restaurant">
+    <nav class="top-nav">
+      <a class="brand" href="index.html">BELHOTEL</a>
+      <button class="menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="site-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="nav-links" id="site-nav">
+        <a href="index.html">Accueil</a>
+        <a href="chambres.html">Chambres</a>
+        <a href="restaurant.html" class="active">Restaurant</a>
+        <a href="bar.html">Bar</a>
+        <a href="/admin/login" class="admin-link">Connexion admin</a>
+      </div>
+    </nav>
+    <div class="hero-content">
+      <p class="eyebrow">Restaurant gastronomique</p>
+      <h1>Une cuisine raffinée au cœur du complexe</h1>
+      <p>Découvrez des plats savoureux, préparés avec des produits de qualité et un esprit d’exception.</p>
+      <div class="hero-actions">
+        <a class="btn btn-secondary" href="/admin/login">Connexion admin</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section grid-3">
+      <article class="menu-card">
+        <h3>Menu Standard</h3>
+        <p>Des plats équilibrés pour un moment de détente.</p>
+        <p class="price-tag">À partir de 15 000 FCFA</p>
+      </article>
+      <article class="menu-card">
+        <h3>Menu VIP</h3>
+        <p>Une sélection plus exclusive avec service personnalisé.</p>
+        <p class="price-tag">À partir de 35 000 FCFA</p>
+      </article>
+      <article class="menu-card">
+        <h3>Menu VVIP</h3>
+        <p>Une expérience gastronomique haut de gamme et privée.</p>
+        <p class="price-tag">À partir de 75 000 FCFA</p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© <span id="year"></span> Belhotel After Work. Tous droits réservés.</p>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 {
-  "name": "salons-daloa",
+  "name": "belhotel-site",
   "version": "1.0.0",
-  "description": "Site web des salons de coiffure à Daloa avec back-end et administration",
+  "description": "Site vitrine du complexe Belhotel avec hôtel, restaurant et bar",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

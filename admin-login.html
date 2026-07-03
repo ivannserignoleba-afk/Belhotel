@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion admin - Belhotel</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="login-shell">
+    <div class="login-card">
+      <h1>Connexion administration</h1>
+      <p>Accédez à la gestion du site Belhotel.</p>
+      <form class="login-form" method="post" action="/admin/login">
+        <input type="text" name="username" placeholder="Nom d’utilisateur" required />
+        <input type="password" name="password" placeholder="Mot de passe" required />
+        <button type="submit">Se connecter</button>
+      </form>
+      <p class="login-note">Identifiants par défaut : admin / belhotel2026</p>
+      <p class="login-error">"%ERROR%"</p>
+    </div>
+  </div>
+</body>
+</html>
