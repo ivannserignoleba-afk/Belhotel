@@ -1,9 +1,11 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
 const app = express();
 const publicPath = __dirname;
+const dataDir = process.env.BELHOTEL_DATA_DIR || __dirname;
 const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'belhotel2026';
 
@@ -31,7 +33,7 @@ function requireAdmin(req, res, next) {
 
 function readJson(fileName) {
   try {
-    const raw = fs.readFileSync(path.join(publicPath, fileName), 'utf8');
+    const raw = fs.readFileSync(path.join(dataDir, fileName), 'utf8');
     return JSON.parse(raw);
   } catch (error) {
     return [];
@@ -39,7 +41,7 @@ function readJson(fileName) {
 }
 
 function writeJson(fileName, data) {
-  fs.writeFileSync(path.join(publicPath, fileName), JSON.stringify(data, null, 2), 'utf8');
+  fs.writeFileSync(path.join(dataDir, fileName), JSON.stringify(data, null, 2), 'utf8');
 }
 
 app.get('/', (req, res) => {
@@ -227,7 +229,6 @@ app.delete('/api/bookings/:id', requireAdmin, (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-const os = require('os');
 
 function getLocalIP() {
   const interfaces = os.networkInterfaces();
@@ -241,9 +242,27 @@ function getLocalIP() {
   return 'localhost';
 }
 
-const localIP = getLocalIP();
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Serveur démarré sur:`);
-  console.log(`  Local: http://localhost:${port}`);
-  console.log(`  Réseau: http://${localIP}:${port}`);
-});
+function start() {
+  const localIP = getLocalIP();
+  return app.listen(port, '0.0.0.0', () => {
+    console.log(`Serveur démarré sur:`);
+    console.log(`  Local: http://localhost:${port}`);
+    console.log(`  Réseau: http://${localIP}:${port}`);
+  });
+}
+
+if (require.main === module) {
+  start();
+}
+
+module.exports = {
+  app,
+  start,
+  parseCookies,
+  requireAdmin,
+  readJson,
+  writeJson,
+  getLocalIP,
+  ADMIN_USERNAME,
+  ADMIN_PASSWORD,
+};
