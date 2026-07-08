@@ -17,10 +17,20 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   const renderCollection = async (container, endpoint, deleteEndpoint, title) => {
-    const response = await fetch(endpoint);
-    const items = await response.json();
-
     if (!container) return;
+
+    let items;
+    try {
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error(`Requête ${endpoint} échouée (${response.status})`);
+      }
+      items = await response.json();
+    } catch (error) {
+      console.error(`Erreur de chargement de ${endpoint}:`, error);
+      container.innerHTML = '<p class="empty-state">Impossible de charger les données.</p>';
+      return;
+    }
 
     if (!items.length) {
       container.innerHTML = `<p class="empty-state">Aucune ${title} enregistrée.</p>`;
@@ -45,9 +55,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const button = card.querySelector('.delete-btn');
       button.addEventListener('click', async () => {
-        const deleteResponse = await fetch(`${deleteEndpoint}/${item.id}`, { method: 'DELETE' });
-        if (deleteResponse.ok) {
-          await renderCollection(container, endpoint, deleteEndpoint, title);
+        try {
+          const deleteResponse = await fetch(`${deleteEndpoint}/${item.id}`, { method: 'DELETE' });
+          if (deleteResponse.ok) {
+            await renderCollection(container, endpoint, deleteEndpoint, title);
+          } else {
+            alert('Suppression impossible. Veuillez réessayer.');
+          }
+        } catch (error) {
+          console.error(`Erreur de suppression sur ${deleteEndpoint}:`, error);
+          alert('Une erreur réseau est survenue lors de la suppression.');
         }
       });
 
@@ -61,8 +78,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('booking-list');
     if (!container) return;
 
-    const response = await fetch('/api/bookings');
-    const bookings = await response.json();
+    let bookings;
+    try {
+      const response = await fetch('/api/bookings');
+      if (!response.ok) {
+        throw new Error(`Requête /api/bookings échouée (${response.status})`);
+      }
+      bookings = await response.json();
+    } catch (error) {
+      console.error('Erreur de chargement des réservations:', error);
+      container.innerHTML = '<p class="empty-state">Impossible de charger les réservations.</p>';
+      return;
+    }
 
     if (!bookings.length) {
       container.innerHTML = '<p class="empty-state">Aucune réservation pour le moment.</p>';
@@ -88,9 +115,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const button = card.querySelector('.delete-btn');
       button.addEventListener('click', async () => {
-        const deleteResponse = await fetch(`/api/bookings/${booking.id}`, { method: 'DELETE' });
-        if (deleteResponse.ok) {
-          await renderBookings();
+        try {
+          const deleteResponse = await fetch(`/api/bookings/${booking.id}`, { method: 'DELETE' });
+          if (deleteResponse.ok) {
+            await renderBookings();
+          } else {
+            alert('Suppression impossible. Veuillez réessayer.');
+          }
+        } catch (error) {
+          console.error('Erreur de suppression de la réservation:', error);
+          alert('Une erreur réseau est survenue lors de la suppression.');
         }
       });
 
@@ -110,19 +144,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const payload = Object.fromEntries(formData.entries());
       payload.price = Number(payload.price);
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
 
-      if (response.ok) {
-        form.reset();
-        await Promise.all(collections.map(({ id: listId, endpoint: collectionEndpoint, deleteEndpoint, title }) => renderCollection(document.getElementById(listId), collectionEndpoint, deleteEndpoint, title)));
-        await renderBookings();
-        alert('Élément ajouté avec succès.');
-      } else {
-        alert('Erreur lors de l’ajout.');
+        if (response.ok) {
+          form.reset();
+          await Promise.all(collections.map(({ id: listId, endpoint: collectionEndpoint, deleteEndpoint, title }) => renderCollection(document.getElementById(listId), collectionEndpoint, deleteEndpoint, title)));
+          await renderBookings();
+          alert('Élément ajouté avec succès.');
+        } else {
+          alert('Erreur lors de l’ajout.');
+        }
+      } catch (error) {
+        console.error(`Erreur lors de l’ajout sur ${endpoint}:`, error);
+        alert('Une erreur réseau est survenue. Veuillez réessayer.');
       }
     });
   });

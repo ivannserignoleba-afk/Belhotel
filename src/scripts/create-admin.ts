@@ -60,9 +60,12 @@ async function createAdmin() {
     console.log(`Email: ${email}`);
     console.log(`Mot de passe: ${password}`);
     console.log(`\n⚠️  Changez le mot de passe après votre première connexion !`);
-  } catch (error: any) {
-    console.error('❌ Erreur:', error.message);
-    return;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('❌ Erreur:', message);
+    // Signal failure to the caller/CI without an abrupt process.exit() that
+    // previously triggered a Windows assert on exit.
+    process.exitCode = 1;
   }
 }
 

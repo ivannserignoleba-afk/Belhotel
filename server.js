@@ -30,16 +30,35 @@ function requireAdmin(req, res, next) {
 }
 
 function readJson(fileName) {
+  const filePath = path.join(publicPath, fileName);
+  let raw;
   try {
-    const raw = fs.readFileSync(path.join(publicPath, fileName), 'utf8');
+    raw = fs.readFileSync(filePath, 'utf8');
+  } catch (error) {
+    // A missing file simply means "no data yet"; anything else is a real
+    // problem we must not hide.
+    if (error.code === 'ENOENT') {
+      return [];
+    }
+    console.error(`Erreur de lecture de ${fileName}:`, error);
+    throw error;
+  }
+
+  try {
     return JSON.parse(raw);
   } catch (error) {
-    return [];
+    console.error(`Erreur d'analyse JSON de ${fileName}:`, error);
+    throw error;
   }
 }
 
 function writeJson(fileName, data) {
-  fs.writeFileSync(path.join(publicPath, fileName), JSON.stringify(data, null, 2), 'utf8');
+  try {
+    fs.writeFileSync(path.join(publicPath, fileName), JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+    console.error(`Erreur d'écriture de ${fileName}:`, error);
+    throw error;
+  }
 }
 
 app.get('/', (req, res) => {
@@ -224,6 +243,16 @@ app.delete('/api/bookings/:id', requireAdmin, (req, res) => {
   }
   writeJson('bookings.json', next);
   res.json({ success: true });
+});
+
+// Central error handler: turns any error thrown/forwarded from a route into a
+// clean JSON 500 instead of leaking a stack trace or hanging the request.
+app.use((err, req, res, next) => {
+  console.error('Erreur serveur non gérée:', err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(500).json({ error: 'Une erreur interne est survenue.' });
 });
 
 const port = process.env.PORT || 3000;
