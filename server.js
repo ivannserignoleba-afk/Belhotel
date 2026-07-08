@@ -88,107 +88,45 @@ app.get('/admin', requireAdmin, (req, res) => {
   res.sendFile(path.join(publicPath, 'admin.html'));
 });
 
-app.get('/api/rooms', (req, res) => {
-  res.json(readJson('rooms.json'));
-});
+function registerCatalogResource(basePath, fileName, notFoundMessage) {
+  app.get(basePath, (req, res) => {
+    res.json(readJson(fileName));
+  });
 
-app.post('/api/rooms', requireAdmin, (req, res) => {
-  const { name, description, price, image } = req.body;
-  if (!name || !price) {
-    return res.status(400).json({ error: 'Le nom et le prix sont obligatoires.' });
-  }
+  app.post(basePath, requireAdmin, (req, res) => {
+    const { name, description, price, image } = req.body;
+    if (!name || !price) {
+      return res.status(400).json({ error: 'Le nom et le prix sont obligatoires.' });
+    }
 
-  const rooms = readJson('rooms.json');
-  const item = {
-    id: Date.now().toString(),
-    name,
-    description: description || '',
-    price: Number(price),
-    image: image || '',
-  };
+    const items = readJson(fileName);
+    const item = {
+      id: Date.now().toString(),
+      name,
+      description: description || '',
+      price: Number(price),
+      image: image || '',
+    };
 
-  rooms.push(item);
-  writeJson('rooms.json', rooms);
-  res.status(201).json(item);
-});
+    items.push(item);
+    writeJson(fileName, items);
+    res.status(201).json(item);
+  });
 
-app.delete('/api/rooms/:id', requireAdmin, (req, res) => {
-  const rooms = readJson('rooms.json');
-  const next = rooms.filter((item) => item.id !== req.params.id);
-  if (next.length === rooms.length) {
-    return res.status(404).json({ error: 'Chambre introuvable.' });
-  }
-  writeJson('rooms.json', next);
-  res.json({ success: true });
-});
+  app.delete(`${basePath}/:id`, requireAdmin, (req, res) => {
+    const items = readJson(fileName);
+    const next = items.filter((item) => item.id !== req.params.id);
+    if (next.length === items.length) {
+      return res.status(404).json({ error: notFoundMessage });
+    }
+    writeJson(fileName, next);
+    res.json({ success: true });
+  });
+}
 
-app.get('/api/restaurant', (req, res) => {
-  res.json(readJson('restaurant.json'));
-});
-
-app.post('/api/restaurant', requireAdmin, (req, res) => {
-  const { name, description, price, image } = req.body;
-  if (!name || !price) {
-    return res.status(400).json({ error: 'Le nom et le prix sont obligatoires.' });
-  }
-
-  const items = readJson('restaurant.json');
-  const item = {
-    id: Date.now().toString(),
-    name,
-    description: description || '',
-    price: Number(price),
-    image: image || '',
-  };
-
-  items.push(item);
-  writeJson('restaurant.json', items);
-  res.status(201).json(item);
-});
-
-app.delete('/api/restaurant/:id', requireAdmin, (req, res) => {
-  const items = readJson('restaurant.json');
-  const next = items.filter((item) => item.id !== req.params.id);
-  if (next.length === items.length) {
-    return res.status(404).json({ error: 'Plat introuvable.' });
-  }
-  writeJson('restaurant.json', next);
-  res.json({ success: true });
-});
-
-app.get('/api/bar', (req, res) => {
-  res.json(readJson('bar.json'));
-});
-
-app.post('/api/bar', requireAdmin, (req, res) => {
-  const { name, description, price, image } = req.body;
-  if (!name || !price) {
-    return res.status(400).json({ error: 'Le nom et le prix sont obligatoires.' });
-  }
-
-  const items = readJson('bar.json');
-  const item = {
-    id: Date.now().toString(),
-    name,
-    description: description || '',
-    price: Number(price),
-    image: image || '',
-  };
-
-  items.push(item);
-  writeJson('bar.json', items);
-  res.status(201).json(item);
-});
-
-app.delete('/api/bar/:id', requireAdmin, (req, res) => {
-  const items = readJson('bar.json');
-  const next = items.filter((item) => item.id !== req.params.id);
-  if (next.length === items.length) {
-    return res.status(404).json({ error: 'Boisson introuvable.' });
-  }
-  writeJson('bar.json', next);
-  res.json({ success: true });
-});
+registerCatalogResource('/api/rooms', 'rooms.json', 'Chambre introuvable.');
+registerCatalogResource('/api/restaurant', 'restaurant.json', 'Plat introuvable.');
+registerCatalogResource('/api/bar', 'bar.json', 'Boisson introuvable.');
 
 app.get('/api/bookings', requireAdmin, (req, res) => {
   res.json(readJson('bookings.json'));

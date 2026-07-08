@@ -1,8 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const year = document.getElementById('year');
-  if (year) {
-    year.textContent = new Date().getFullYear();
-  }
+  Bel.setFooterYear();
 
   const forms = [
     { id: 'room-form', endpoint: '/api/rooms' },
@@ -38,14 +35,14 @@ document.addEventListener('DOMContentLoaded', () => {
         <div>
           <strong>${item.name}</strong>
           <p>${item.description || 'Aucune description.'}</p>
-          <p class="price-tag">${Number(item.price).toLocaleString('fr-FR')} FCFA</p>
+          <p class="price-tag">${Bel.formatPrice(item.price)}</p>
         </div>
         <button class="delete-btn" type="button" data-id="${item.id}">Supprimer</button>
       `;
 
       const button = card.querySelector('.delete-btn');
       button.addEventListener('click', async () => {
-        const deleteResponse = await fetch(`${deleteEndpoint}/${item.id}`, { method: 'DELETE' });
+        const deleteResponse = await Bel.deleteJson(`${deleteEndpoint}/${item.id}`);
         if (deleteResponse.ok) {
           await renderCollection(container, endpoint, deleteEndpoint, title);
         }
@@ -88,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const button = card.querySelector('.delete-btn');
       button.addEventListener('click', async () => {
-        const deleteResponse = await fetch(`/api/bookings/${booking.id}`, { method: 'DELETE' });
+        const deleteResponse = await Bel.deleteJson(`/api/bookings/${booking.id}`);
         if (deleteResponse.ok) {
           await renderBookings();
         }
@@ -110,11 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const payload = Object.fromEntries(formData.entries());
       payload.price = Number(payload.price);
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      const response = await Bel.postJson(endpoint, payload);
 
       if (response.ok) {
         form.reset();
