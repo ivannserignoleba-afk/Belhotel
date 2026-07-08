@@ -156,12 +156,24 @@ document.addEventListener('DOMContentLoaded', () => {
       items.forEach((item) => {
         const card = document.createElement('article');
         card.className = page === 'bar' ? 'bar-card' : page === 'restaurant' ? 'menu-card' : 'room-card';
-        card.innerHTML = `
-          ${item.image ? `<img src="${item.image}" alt="${item.name}" class="item-image" />` : ''}
-          <h3>${item.name}</h3>
-          <p>${item.description || ''}</p>
-          <p class="price-tag">${Number(item.price).toLocaleString('fr-FR')} FCFA</p>
-        `;
+
+        if (item.image && /^https?:\/\//i.test(item.image)) {
+          const img = document.createElement('img');
+          img.src = item.image;
+          img.alt = item.name || '';
+          img.className = 'item-image';
+          card.appendChild(img);
+        }
+
+        const title = document.createElement('h3');
+        title.textContent = item.name || '';
+        const desc = document.createElement('p');
+        desc.textContent = item.description || '';
+        const price = document.createElement('p');
+        price.className = 'price-tag';
+        price.textContent = `${Number(item.price).toLocaleString('fr-FR')} FCFA`;
+
+        card.append(title, desc, price);
         list.appendChild(card);
       });
     })
