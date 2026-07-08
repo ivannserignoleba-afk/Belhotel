@@ -1,8 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const year = document.getElementById('year');
-  if (year) {
-    year.textContent = new Date().getFullYear();
-  }
+  Bel.setFooterYear();
 
   const toggle = document.querySelector('.menu-toggle');
   const navLinks = document.querySelector('.nav-links');
@@ -116,11 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const name = payload.name?.toString().trim() || 'Client';
       const room = payload.room?.toString().trim() || 'chambre';
 
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      const response = await Bel.postJson('/api/bookings', payload);
 
       if (response.ok) {
         bookingMessage.textContent = `Merci ${name} ! Votre demande de réservation pour ${room} a bien été enregistrée. Nous vous contacterons rapidement.`;
@@ -160,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ${item.image ? `<img src="${item.image}" alt="${item.name}" class="item-image" />` : ''}
           <h3>${item.name}</h3>
           <p>${item.description || ''}</p>
-          <p class="price-tag">${Number(item.price).toLocaleString('fr-FR')} FCFA</p>
+          <p class="price-tag">${Bel.formatPrice(item.price)}</p>
         `;
         list.appendChild(card);
       });
