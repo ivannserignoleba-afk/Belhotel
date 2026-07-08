@@ -45,12 +45,14 @@ export default function AdminRestaurantPage() {
       if (error) {
         console.error('Erreur lecture menu:', error.message);
         setItems([]);
+        alert('Impossible de charger le menu. Veuillez réessayer.');
       } else {
         setItems(data || []);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Erreur fetchMenuItems:', err);
       setItems([]);
+      alert('Impossible de charger le menu. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }
@@ -73,6 +75,7 @@ export default function AdminRestaurantPage() {
 
       if (error) {
         console.error('Erreur création menu:', error.message);
+        alert(`Impossible d'enregistrer le plat : ${error.message}`);
       } else {
         setForm({
           name: '',
@@ -84,8 +87,9 @@ export default function AdminRestaurantPage() {
         setIsModalOpen(false);
         fetchMenuItems();
       }
-    } catch (error: any) {
-      console.error('Erreur:', error.message);
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert("Une erreur est survenue lors de l'enregistrement du plat.");
     } finally {
       setLoading(false);
     }
@@ -94,14 +98,22 @@ export default function AdminRestaurantPage() {
   const handleDeleteItem = async (itemId: string) => {
     if (!confirm('Supprimer ce plat ?')) return;
     setLoading(true);
-    const { error } = await supabase
-      .from('restaurant_menu')
-      .delete()
-      .eq('id', itemId);
-    if (error) {
-      console.error('Erreur suppression:', error.message);
-    } else {
-      fetchMenuItems();
+    try {
+      const { error } = await supabase
+        .from('restaurant_menu')
+        .delete()
+        .eq('id', itemId);
+      if (error) {
+        console.error('Erreur suppression:', error.message);
+        alert(`Impossible de supprimer le plat : ${error.message}`);
+      } else {
+        await fetchMenuItems();
+      }
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+      alert('Une erreur est survenue lors de la suppression du plat.');
+    } finally {
+      setLoading(false);
     }
   };
 

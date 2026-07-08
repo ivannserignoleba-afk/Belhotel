@@ -116,20 +116,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const name = payload.name?.toString().trim() || 'Client';
       const room = payload.room?.toString().trim() || 'chambre';
 
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      try {
+        const response = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
 
-      if (response.ok) {
-        bookingMessage.textContent = `Merci ${name} ! Votre demande de réservation pour ${room} a bien été enregistrée. Nous vous contacterons rapidement.`;
-        bookingForm.reset();
-        if (bookingRoomInput) {
-          bookingRoomInput.value = '';
+        if (response.ok) {
+          bookingMessage.textContent = `Merci ${name} ! Votre demande de réservation pour ${room} a bien été enregistrée. Nous vous contacterons rapidement.`;
+          bookingForm.reset();
+          if (bookingRoomInput) {
+            bookingRoomInput.value = '';
+          }
+        } else {
+          bookingMessage.textContent = 'Une erreur est survenue. Veuillez réessayer.';
         }
-      } else {
-        bookingMessage.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+      } catch (error) {
+        console.error('Erreur lors de l’envoi de la réservation:', error);
+        bookingMessage.textContent = 'Impossible de contacter le serveur. Vérifiez votre connexion et réessayez.';
       }
     });
   }
