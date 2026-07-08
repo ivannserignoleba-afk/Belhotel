@@ -34,16 +34,25 @@ document.addEventListener('DOMContentLoaded', () => {
     items.forEach((item) => {
       const card = document.createElement('article');
       card.className = 'admin-item';
-      card.innerHTML = `
-        <div>
-          <strong>${item.name}</strong>
-          <p>${item.description || 'Aucune description.'}</p>
-          <p class="price-tag">${Number(item.price).toLocaleString('fr-FR')} FCFA</p>
-        </div>
-        <button class="delete-btn" type="button" data-id="${item.id}">Supprimer</button>
-      `;
 
-      const button = card.querySelector('.delete-btn');
+      const info = document.createElement('div');
+      const nameEl = document.createElement('strong');
+      nameEl.textContent = item.name;
+      const descEl = document.createElement('p');
+      descEl.textContent = item.description || 'Aucune description.';
+      const priceEl = document.createElement('p');
+      priceEl.className = 'price-tag';
+      priceEl.textContent = `${Number(item.price).toLocaleString('fr-FR')} FCFA`;
+      info.append(nameEl, descEl, priceEl);
+
+      const button = document.createElement('button');
+      button.className = 'delete-btn';
+      button.type = 'button';
+      button.dataset.id = item.id;
+      button.textContent = 'Supprimer';
+
+      card.append(info, button);
+
       button.addEventListener('click', async () => {
         const deleteResponse = await fetch(`${deleteEndpoint}/${item.id}`, { method: 'DELETE' });
         if (deleteResponse.ok) {
@@ -76,17 +85,26 @@ document.addEventListener('DOMContentLoaded', () => {
     bookings.forEach((booking) => {
       const card = document.createElement('article');
       card.className = 'admin-item';
-      card.innerHTML = `
-        <div>
-          <strong>${booking.name}</strong>
-          <p>${booking.room}</p>
-          <p>${booking.email}</p>
-          <p>Du ${booking.checkin} au ${booking.checkout}</p>
-        </div>
-        <button class="delete-btn" type="button" data-id="${booking.id}">Supprimer</button>
-      `;
 
-      const button = card.querySelector('.delete-btn');
+      const info = document.createElement('div');
+      const nameEl = document.createElement('strong');
+      nameEl.textContent = booking.name;
+      const roomEl = document.createElement('p');
+      roomEl.textContent = booking.room;
+      const emailEl = document.createElement('p');
+      emailEl.textContent = booking.email;
+      const datesEl = document.createElement('p');
+      datesEl.textContent = `Du ${booking.checkin} au ${booking.checkout}`;
+      info.append(nameEl, roomEl, emailEl, datesEl);
+
+      const button = document.createElement('button');
+      button.className = 'delete-btn';
+      button.type = 'button';
+      button.dataset.id = booking.id;
+      button.textContent = 'Supprimer';
+
+      card.append(info, button);
+
       button.addEventListener('click', async () => {
         const deleteResponse = await fetch(`/api/bookings/${booking.id}`, { method: 'DELETE' });
         if (deleteResponse.ok) {

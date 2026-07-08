@@ -20,10 +20,15 @@ async function createAdmin() {
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const email = process.env.ADMIN_EMAIL || 'admin@belhotel.com';
-    const password = process.env.ADMIN_PASSWORD || 'Belhotel2024!';
+    const password = process.env.ADMIN_PASSWORD;
 
     if (!supabaseUrl || !supabaseServiceRoleKey) {
       console.error('❌ Veuillez définir SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY dans votre fichier .env.local');
+      process.exit(1);
+    }
+
+    if (!password || password.length < 12) {
+      console.error('❌ Veuillez définir ADMIN_PASSWORD (au moins 12 caractères) dans votre fichier .env.local');
       process.exit(1);
     }
 
@@ -56,9 +61,8 @@ async function createAdmin() {
     }
 
     console.log('✅ Administrateur créé avec succès!');
-    console.log(`\nIdentifiants de connexion:`);
-    console.log(`Email: ${email}`);
-    console.log(`Mot de passe: ${password}`);
+    console.log(`\nEmail: ${email}`);
+    console.log('Mot de passe: (celui défini dans ADMIN_PASSWORD)');
     console.log(`\n⚠️  Changez le mot de passe après votre première connexion !`);
   } catch (error: any) {
     console.error('❌ Erreur:', error.message);
