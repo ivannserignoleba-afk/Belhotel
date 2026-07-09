@@ -7,6 +7,9 @@ on:
   schedule:
     - cron: '0 6 */2 * *' # tous les 2 jours à 06h00 UTC
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/keep-supabase-alive.yml' # test auto quand le workflow est modifié
 
 jobs:
   ping:
