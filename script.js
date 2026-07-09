@@ -34,9 +34,103 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const page = document.body.dataset.page;
 
+  // ----- Page d'accueil : diaporama + aperçu des chambres -----
+  if (page === 'home') {
+    initSlider();
+    loadRoomsPreview();
+
+    // Boutons WhatsApp génériques (héros, bandeau, footer)
+    const genericMessage = 'Bonjour, je vous contacte depuis le site du Belhotel After Work. Je souhaite des informations.';
+    ['hero-whatsapp', 'cta-whatsapp', 'footer-whatsapp'].forEach((id) => {
+      const link = document.getElementById(id);
+      if (link) {
+        link.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(genericMessage)}`;
+        link.target = '_blank';
+        link.rel = 'noopener';
+      }
+    });
+  }
+
   // ----- Page Chambres : liste dynamique + réservation WhatsApp -----
   if (page === 'chambres') {
     loadRooms();
+  }
+
+  function initSlider() {
+    const slider = document.getElementById('hero-slider');
+    if (!slider) return;
+
+    const slides = Array.from(slider.querySelectorAll('.hs-slide'));
+    const dotsContainer = slider.querySelector('.hs-dots');
+    let current = 0;
+    let timer = null;
+
+    slides.forEach((_, index) => {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'hs-dot' + (index === 0 ? ' is-active' : '');
+      dot.setAttribute('aria-label', `Aller à l'image ${index + 1}`);
+      dot.addEventListener('click', () => { goTo(index); restart(); });
+      dotsContainer.appendChild(dot);
+    });
+    const dots = Array.from(dotsContainer.children);
+
+    function goTo(index) {
+      slides[current].classList.remove('is-active');
+      dots[current].classList.remove('is-active');
+      current = (index + slides.length) % slides.length;
+      slides[current].classList.add('is-active');
+      dots[current].classList.add('is-active');
+    }
+
+    function restart() {
+      clearInterval(timer);
+      timer = setInterval(() => goTo(current + 1), 6000);
+    }
+
+    slider.querySelector('.hs-prev').addEventListener('click', () => { goTo(current - 1); restart(); });
+    slider.querySelector('.hs-next').addEventListener('click', () => { goTo(current + 1); restart(); });
+
+    restart();
+  }
+
+  function whatsappReserveUrl(room) {
+    const name = (room.name || '').trim();
+    const message = `Bonjour, je souhaite réserver la chambre « ${name} » (${formatPrice(room.price)}/nuit). Merci de me confirmer la disponibilité.`;
+    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  }
+
+  async function loadRoomsPreview() {
+    const list = document.getElementById('home-rooms-grid');
+    if (!list) return;
+
+    const { data: rooms, error } = await db
+      .from('rooms')
+      .select('*')
+      .eq('status', 'available')
+      .order('price', { ascending: true })
+      .limit(3);
+
+    if (error || !rooms || !rooms.length) {
+      list.innerHTML = '<p class="empty-state">Nos chambres arrivent bientôt. Contactez-nous sur WhatsApp !</p>';
+      return;
+    }
+
+    list.innerHTML = '';
+    rooms.forEach((room) => {
+      const image = (room.image_urls && room.image_urls[0]) || '';
+      const name = (room.name || '').trim();
+      const card = document.createElement('article');
+      card.className = 'room-card';
+      card.innerHTML = `
+        ${image ? `<img src="${image}" alt="${name}" class="item-image" loading="lazy" />` : ''}
+        <h3>${name}</h3>
+        <p>${room.description || 'Chambre confortable du complexe Belhotel.'}</p>
+        <p class="price-tag">${formatPrice(room.price)} / nuit</p>
+        <a class="btn btn-primary reserve-btn" href="${whatsappReserveUrl(room)}" target="_blank" rel="noopener">Réserver sur WhatsApp</a>
+      `;
+      list.appendChild(card);
+    });
   }
 
   // ----- Pages Restaurant / Bar : menus dynamiques -----
@@ -106,8 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       card.querySelector('.reserve-btn').addEventListener('click', () => {
-        const message = `Bonjour, je souhaite réserver la chambre « ${name} » (${formatPrice(room.price)}/nuit). Merci de me confirmer la disponibilité.`;
-        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+        window.open(whatsappReserveUrl(room), '_blank');
       });
 
       list.appendChild(card);
