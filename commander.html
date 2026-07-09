@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Commander - Belhotel</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=10" />
+</head>
+<body class="order-body">
+  <header class="order-header">
+    <span class="brand">BEL<span>HOTEL</span></span>
+    <span class="order-point" id="order-point"></span>
+  </header>
+
+  <div class="order-wrap">
+    <!-- Chargement -->
+    <div class="order-state" id="order-loading">
+      <p>Chargement...</p>
+    </div>
+
+    <!-- Code invalide -->
+    <div class="order-state" id="order-error" hidden>
+      <h2>QR code introuvable</h2>
+      <p>Ce code de commande n’est pas valide ou n’est plus actif. Rapprochez-vous de la réception.</p>
+    </div>
+
+    <!-- Application -->
+    <div id="order-app" hidden>
+      <nav class="order-tabs" id="order-tabs"></nav>
+
+      <section class="order-menu" id="menu-resto" hidden></section>
+      <section class="order-menu" id="menu-bar" hidden></section>
+
+      <!-- Demandes de service (chambres uniquement) -->
+      <section class="order-service" id="service-panel" hidden>
+        <h2>Une demande ? On s’en occupe.</h2>
+        <p class="order-service-sub">Sélectionnez votre besoin, la réception est prévenue immédiatement.</p>
+        <div class="service-cats" id="service-cats">
+          <button type="button" class="service-cat" data-cat="Serviettes">Serviettes</button>
+          <button type="button" class="service-cat" data-cat="Climatisation">Climatisation</button>
+          <button type="button" class="service-cat" data-cat="Ménage">Ménage</button>
+          <button type="button" class="service-cat" data-cat="Autre">Autre</button>
+        </div>
+        <textarea id="service-message" rows="3" placeholder="Précisez votre demande (facultatif)..."></textarea>
+        <button type="button" class="btn btn-primary service-send" id="service-send">Envoyer la demande</button>
+        <p class="service-feedback" id="service-feedback" aria-live="polite"></p>
+      </section>
+    </div>
+  </div>
+
+  <!-- Barre panier flottante -->
+  <button type="button" class="cart-bar" id="cart-bar" hidden>
+    <span class="cart-bar-count" id="cart-bar-count"></span>
+    <span id="cart-bar-label">Voir ma commande</span>
+    <strong id="cart-bar-total"></strong>
+  </button>
+
+  <!-- Panneau panier -->
+  <div class="cart-overlay" id="cart-overlay" hidden>
+    <div class="cart-sheet">
+      <div class="cart-sheet-head">
+        <h2>Ma commande</h2>
+        <button type="button" class="modal-close cart-close" id="cart-close" aria-label="Fermer">×</button>
+      </div>
+      <div class="cart-items" id="cart-items"></div>
+      <textarea id="cart-note" rows="2" placeholder="Une précision pour votre commande ? (facultatif)"></textarea>
+      <div class="cart-total-row">
+        <span>Total</span>
+        <strong id="cart-total"></strong>
+      </div>
+      <button type="button" class="btn btn-primary cart-submit" id="cart-submit">Envoyer la commande</button>
+      <p class="cart-feedback" id="cart-feedback" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <!-- Écran de confirmation -->
+  <div class="order-success" id="order-success" hidden>
+    <div class="order-success-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <h2>Commande envoyée !</h2>
+      <p id="success-message"></p>
+      <button type="button" class="btn btn-primary" id="success-again">Commander autre chose</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js?v=10"></script>
+  <script src="commander.js?v=10"></script>
+</body>
+</html>
