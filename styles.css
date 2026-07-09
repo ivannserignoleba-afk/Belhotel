@@ -179,7 +179,14 @@ img { max-width: 100%; display: block; }
   flex-wrap: wrap;
   padding: 1.1rem 1.4rem;
 }
-.amenities-band span { font-weight: 600; color: var(--text); }
+.amenities-band span {
+  font-weight: 600;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.amenities-band .icon { color: var(--primary); }
 
 .hs-dots {
   position: absolute;
@@ -244,8 +251,14 @@ img { max-width: 100%; display: block; }
   background: #25d366;
   color: #fff;
   box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
 }
 .btn-whatsapp:hover { background: #1eb457; color: #fff; }
+
+.icon { width: 21px; height: 21px; flex-shrink: 0; }
 
 /* ----- Sections ----- */
 main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
@@ -260,7 +273,13 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
 .highlights, .cards-section { display: grid; gap: 1.2rem; }
 .highlights { grid-template-columns: repeat(3, 1fr); }
 .highlight-card { text-align: center; padding: 1.8rem 1.4rem; }
-.highlight-icon { font-size: 2.2rem; line-height: 1; margin-bottom: 0.6rem; }
+.highlight-icon {
+  display: flex;
+  justify-content: center;
+  color: var(--primary);
+  margin-bottom: 0.8rem;
+}
+.highlight-icon svg { width: 36px; height: 36px; }
 .highlight-card h3 { margin: 0 0 0.5rem; }
 .highlight-card p { margin: 0; color: var(--muted); }
 .cards-section { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }

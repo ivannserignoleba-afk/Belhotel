@@ -17,6 +17,6 @@ const CATEGORY_LABELS = {
 };
 
 // Numéro WhatsApp de la réception (format international sans + ni espaces).
-// ⚠️ Numéro de test pour le moment — à remplacer par le numéro officiel.
+// ATTENTION : numéro de test pour le moment — à remplacer par le numéro officiel.
 const WHATSAPP_NUMBER = '2250757432898';
 
