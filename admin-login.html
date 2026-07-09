@@ -4,21 +4,60 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Connexion admin - Belhotel</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="login-shell">
     <div class="login-card">
+      <a class="brand" href="index.html">BEL<span style="color:#f97316">HOTEL</span></a>
       <h1>Connexion administration</h1>
       <p>Accédez à la gestion du site Belhotel.</p>
-      <form class="login-form" method="post" action="/admin/login">
-        <input type="text" name="username" placeholder="Nom d’utilisateur" required />
-        <input type="password" name="password" placeholder="Mot de passe" required />
-        <button type="submit">Se connecter</button>
+      <form class="login-form" id="login-form">
+        <input type="email" name="email" placeholder="Adresse email" autocomplete="username" required />
+        <input type="password" name="password" placeholder="Mot de passe" autocomplete="current-password" required />
+        <button type="submit" id="login-btn">Se connecter</button>
       </form>
-      <p class="login-note">Identifiants par défaut : admin / belhotel2026</p>
-      <p class="login-error">"%ERROR%"</p>
+      <p class="login-error" id="login-error" aria-live="polite"></p>
+      <p class="login-back"><a href="index.html">← Retour au site</a></p>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Déjà connecté ? Direction l'admin.
+      const { data: { session } } = await db.auth.getSession();
+      if (session) {
+        window.location.href = 'admin.html';
+        return;
+      }
+
+      const form = document.getElementById('login-form');
+      const errorEl = document.getElementById('login-error');
+      const button = document.getElementById('login-btn');
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        errorEl.textContent = '';
+        button.disabled = true;
+        button.textContent = 'Connexion...';
+
+        const { error } = await db.auth.signInWithPassword({
+          email: form.email.value.trim(),
+          password: form.password.value,
+        });
+
+        button.disabled = false;
+        button.textContent = 'Se connecter';
+
+        if (error) {
+          errorEl.textContent = 'Identifiants incorrects. Vérifiez votre email et votre mot de passe.';
+          return;
+        }
+        window.location.href = 'admin.html';
+      });
+    });
+  </script>
 </body>
 </html>

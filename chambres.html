@@ -6,10 +6,10 @@
   <title>Belhotel | Chambres</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body data-page="chambres">
   <header class="hero hero-chambres">
     <nav class="top-nav">
-      <a class="brand" href="index.html">BELHOTEL</a>
+      <a class="brand" href="index.html">BEL<span>HOTEL</span></a>
       <button class="menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="site-nav">
         <span></span>
         <span></span>
@@ -20,53 +20,24 @@
         <a href="chambres.html" class="active">Chambres</a>
         <a href="restaurant.html">Restaurant</a>
         <a href="bar.html">Bar</a>
-        <a href="/admin/login" class="admin-link">Connexion admin</a>
+        <a href="admin-login.html" class="admin-link">Connexion admin</a>
       </div>
     </nav>
     <div class="hero-content">
-      <p class="eyebrow">Hôtel de luxe</p>
-      <h1>Des chambres élégantes pour un séjour paisible</h1>
-      <p>Profitez d’un confort premium, d’un cadre raffiné et d’un service attentionné.</p>
-      <div class="hero-actions">
-        <a class="btn btn-secondary" href="/admin/login">Connexion admin</a>
-      </div>
+      <p class="eyebrow">Hôtel</p>
+      <h1>Des chambres confortables pour un séjour paisible</h1>
+      <p>Choisissez votre chambre et réservez en quelques clics. Nous vous confirmons rapidement.</p>
     </div>
   </header>
 
   <main>
-    <section class="section grid-3">
-      <article class="room-card">
-        <img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80" alt="Chambre Standard" class="item-image" />
-        <h3>Chambre Standard</h3>
-        <p>Équipements essentiels, literie confortable et vue agréable.</p>
-        <p class="price-tag">À partir de 45 000 FCFA</p>
-        <div class="room-actions">
-          <button class="btn btn-secondary preview-btn" type="button" data-title="Chambre Standard" data-image="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80" data-description="Une chambre élégante, lumineuse et idéale pour un séjour confortable.">Voir la photo</button>
-          <button class="btn btn-primary reserve-btn" type="button" data-room="Chambre Standard">Réserver</button>
-        </div>
-      </article>
-      <article class="room-card">
-        <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=900&q=80" alt="Chambre Deluxe" class="item-image" />
-        <h3>Chambre Deluxe</h3>
-        <p>Plus d’espace, mobilier élégant et ambiance plus intime.</p>
-        <p class="price-tag">À partir de 70 000 FCFA</p>
-        <div class="room-actions">
-          <button class="btn btn-secondary preview-btn" type="button" data-title="Chambre Deluxe" data-image="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80" data-description="Une chambre plus spacieuse avec un style raffiné et un confort premium.">Voir la photo</button>
-          <button class="btn btn-primary reserve-btn" type="button" data-room="Chambre Deluxe">Réserver</button>
-        </div>
-      </article>
-      <article class="room-card">
-        <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=900&q=80" alt="Suite Premium" class="item-image" />
-        <h3>Suite Premium</h3>
-        <p>Expérience haut de gamme avec salon privé et service dédié.</p>
-        <p class="price-tag">À partir de 120 000 FCFA</p>
-        <div class="room-actions">
-          <button class="btn btn-secondary preview-btn" type="button" data-title="Suite Premium" data-image="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80" data-description="Une suite premium avec espace de détente, confort haut de gamme et vue élégante.">Voir la photo</button>
-          <button class="btn btn-primary reserve-btn" type="button" data-room="Suite Premium">Réserver</button>
-        </div>
-      </article>
+    <section class="section">
+      <h2 class="section-title">Nos chambres</h2>
+      <p class="section-subtitle">Toutes nos chambres disponibles, avec photos et tarifs par nuit.</p>
+      <div class="grid-3" id="rooms-grid">
+        <p class="empty-state">Chargement des chambres...</p>
+      </div>
     </section>
-
   </main>
 
   <div class="room-modal" id="room-modal" hidden>
@@ -86,11 +57,17 @@
       <h2>Réserver votre séjour</h2>
       <p>Complétez le formulaire pour envoyer votre demande de réservation.</p>
       <form id="booking-form">
+        <input type="text" name="room" id="booking-room" placeholder="Chambre" readonly required />
         <input type="text" name="name" placeholder="Votre nom" required />
         <input type="email" name="email" placeholder="Votre email" required />
-        <input type="text" name="room" id="booking-room" placeholder="Chambre souhaitée" readonly required />
-        <input type="date" name="checkin" required />
-        <input type="date" name="checkout" required />
+        <input type="tel" name="phone" placeholder="Votre téléphone (facultatif)" />
+        <label>Date d’arrivée
+          <input type="date" name="checkin" required />
+        </label>
+        <label>Date de départ
+          <input type="date" name="checkout" required />
+        </label>
+        <p class="booking-total" id="booking-total"></p>
         <button type="submit" class="btn btn-primary">Envoyer la demande</button>
       </form>
       <p id="booking-message" class="booking-message" aria-live="polite"></p>
@@ -98,8 +75,12 @@
   </div>
 
   <footer class="footer">
+    <a class="brand" href="index.html">BEL<span>HOTEL</span></a>
     <p>© <span id="year"></span> Belhotel After Work. Tous droits réservés.</p>
   </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

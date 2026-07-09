@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    { "source": "/admin/login", "destination": "/admin-login.html" },
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/chambres", "destination": "/chambres.html" },
+    { "source": "/restaurant", "destination": "/restaurant.html" },
+    { "source": "/bar", "destination": "/bar.html" }
+  ]
+}

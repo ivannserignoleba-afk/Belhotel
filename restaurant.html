@@ -6,10 +6,10 @@
   <title>Belhotel | Restaurant</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body data-page="restaurant">
   <header class="hero hero-restaurant">
     <nav class="top-nav">
-      <a class="brand" href="index.html">BELHOTEL</a>
+      <a class="brand" href="index.html">BEL<span>HOTEL</span></a>
       <button class="menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="site-nav">
         <span></span>
         <span></span>
@@ -20,42 +20,57 @@
         <a href="chambres.html">Chambres</a>
         <a href="restaurant.html" class="active">Restaurant</a>
         <a href="bar.html">Bar</a>
-        <a href="/admin/login" class="admin-link">Connexion admin</a>
+        <a href="admin-login.html" class="admin-link">Connexion admin</a>
       </div>
     </nav>
     <div class="hero-content">
-      <p class="eyebrow">Restaurant gastronomique</p>
-      <h1>Une cuisine raffinée au cœur du complexe</h1>
-      <p>Découvrez des plats savoureux, préparés avec des produits de qualité et un esprit d’exception.</p>
-      <div class="hero-actions">
-        <a class="btn btn-secondary" href="/admin/login">Connexion admin</a>
-      </div>
+      <p class="eyebrow">Restaurant</p>
+      <h1>Une cuisine savoureuse au cœur du complexe</h1>
+      <p>Découvrez nos cartes Standard, VIP et VVIP, préparées avec des produits de qualité.</p>
     </div>
   </header>
 
   <main>
-    <section class="section grid-3">
-      <article class="menu-card">
-        <h3>Menu Standard</h3>
-        <p>Des plats équilibrés pour un moment de détente.</p>
-        <p class="price-tag">À partir de 15 000 FCFA</p>
-      </article>
-      <article class="menu-card">
-        <h3>Menu VIP</h3>
-        <p>Une sélection plus exclusive avec service personnalisé.</p>
-        <p class="price-tag">À partir de 35 000 FCFA</p>
-      </article>
-      <article class="menu-card">
-        <h3>Menu VVIP</h3>
-        <p>Une expérience gastronomique haut de gamme et privée.</p>
-        <p class="price-tag">À partir de 75 000 FCFA</p>
-      </article>
+    <section class="section" id="menu-sections">
+      <h2 class="section-title">Nos cartes</h2>
+      <p class="section-subtitle">Trois expériences culinaires selon vos envies.</p>
+
+      <div class="category-section" data-category="standard">
+        <div class="category-header">
+          <h3>Menu Standard</h3>
+          <span class="category-badge">Standard</span>
+          <p>Des plats équilibrés et généreux pour un moment de détente.</p>
+        </div>
+        <div class="category-items"><p class="empty-state">Chargement...</p></div>
+      </div>
+
+      <div class="category-section" data-category="vip">
+        <div class="category-header">
+          <h3>Menu VIP</h3>
+          <span class="category-badge">VIP</span>
+          <p>Une sélection plus exclusive avec un service personnalisé.</p>
+        </div>
+        <div class="category-items"><p class="empty-state">Chargement...</p></div>
+      </div>
+
+      <div class="category-section" data-category="vvip">
+        <div class="category-header">
+          <h3>Menu VVIP</h3>
+          <span class="category-badge">VVIP</span>
+          <p>L’expérience gastronomique haut de gamme et privée.</p>
+        </div>
+        <div class="category-items"><p class="empty-state">Chargement...</p></div>
+      </div>
     </section>
   </main>
 
   <footer class="footer">
+    <a class="brand" href="index.html">BEL<span>HOTEL</span></a>
     <p>© <span id="year"></span> Belhotel After Work. Tous droits réservés.</p>
   </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

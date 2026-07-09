@@ -4,94 +4,115 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Administration Belhotel</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
-  <header class="hero hero-home">
-    <nav class="top-nav">
-      <a class="brand" href="index.html">BELHOTEL</a>
-      <div class="nav-links">
-        <a href="index.html">Accueil</a>
-        <a href="chambres.html">Chambres</a>
-        <a href="restaurant.html">Restaurant</a>
-        <a href="bar.html">Bar</a>
-      </div>
-    </nav>
-    <div class="hero-content">
-      <p class="eyebrow">Administration</p>
-      <h1>Ajouter des chambres, plats et boissons</h1>
-      <p>Gérez facilement les éléments du site avec images, descriptions et prix.</p>
+<body class="admin-body">
+  <header class="admin-topbar">
+    <a class="brand" href="index.html">BEL<span>HOTEL</span> · Admin</a>
+    <div class="admin-user">
+      <span id="admin-email"></span>
+      <button type="button" class="logout-btn" id="logout-btn">Déconnexion</button>
     </div>
   </header>
 
   <main>
-    <section class="section admin-panel">
-      <div class="admin-card">
-        <h2>Ajouter une chambre</h2>
-        <form id="room-form">
-          <input type="text" name="name" placeholder="Nom de la chambre" required />
-          <textarea name="description" rows="3" placeholder="Description"></textarea>
-          <input type="number" name="price" placeholder="Prix en FCFA" required />
-          <input type="url" name="image" placeholder="URL de l'image" />
-          <button type="submit">Ajouter la chambre</button>
-        </form>
-      </div>
+    <div class="admin-tabs">
+      <button type="button" class="admin-tab active" data-tab="bookings">Réservations</button>
+      <button type="button" class="admin-tab" data-tab="rooms">Chambres</button>
+      <button type="button" class="admin-tab" data-tab="restaurant">Restaurant</button>
+      <button type="button" class="admin-tab" data-tab="bar">Bar</button>
+    </div>
 
-      <div class="admin-card">
-        <h2>Ajouter un plat</h2>
-        <form id="restaurant-form">
-          <input type="text" name="name" placeholder="Nom du plat" required />
-          <textarea name="description" rows="3" placeholder="Description"></textarea>
-          <input type="number" name="price" placeholder="Prix en FCFA" required />
-          <input type="url" name="image" placeholder="URL de l'image" />
-          <button type="submit">Ajouter le plat</button>
-        </form>
-      </div>
-
-      <div class="admin-card">
-        <h2>Ajouter une boisson</h2>
-        <form id="bar-form">
-          <input type="text" name="name" placeholder="Nom de la boisson" required />
-          <textarea name="description" rows="3" placeholder="Description"></textarea>
-          <input type="number" name="price" placeholder="Prix en FCFA" required />
-          <input type="url" name="image" placeholder="URL de l'image" />
-          <button type="submit">Ajouter la boisson</button>
-        </form>
-      </div>
-    </section>
-
-    <section class="section admin-grid">
-      <div class="admin-card">
-        <h2>Chambres enregistrées</h2>
-        <div id="room-list" class="admin-list"></div>
-      </div>
-
-      <div class="admin-card">
-        <h2>Plats du restaurant</h2>
-        <div id="restaurant-list" class="admin-list"></div>
-      </div>
-
-      <div class="admin-card">
-        <h2>Boissons du bar</h2>
-        <div id="bar-list" class="admin-list"></div>
-      </div>
-    </section>
-
-    <section class="section">
+    <!-- Réservations -->
+    <section class="admin-panel-section" id="tab-bookings">
       <div class="admin-card">
         <h2>Réservations reçues</h2>
-        <div id="booking-list" class="admin-list"></div>
+        <p class="hint">Les nouvelles demandes arrivent avec le statut « pending ». Confirmez-les après vérification.</p>
+        <div id="booking-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
+      </div>
+    </section>
+
+    <!-- Chambres -->
+    <section class="admin-panel-section" id="tab-rooms" hidden>
+      <div class="admin-grid">
+        <div class="admin-card">
+          <h2>Ajouter une chambre</h2>
+          <form id="room-form">
+            <input type="text" name="name" placeholder="Nom de la chambre (ex: 104-LA DOUCEUR)" required />
+            <textarea name="description" rows="3" placeholder="Description"></textarea>
+            <input type="number" name="price" placeholder="Prix par nuit en FCFA" min="0" required />
+            <input type="url" name="image" placeholder="URL de la photo" />
+            <select name="status">
+              <option value="available">Disponible</option>
+              <option value="unavailable">Indisponible</option>
+            </select>
+            <button type="submit">Ajouter la chambre</button>
+          </form>
+        </div>
+        <div class="admin-card">
+          <h2>Chambres enregistrées</h2>
+          <div id="room-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Restaurant -->
+    <section class="admin-panel-section" id="tab-restaurant" hidden>
+      <div class="admin-grid">
+        <div class="admin-card">
+          <h2>Ajouter un plat</h2>
+          <form id="restaurant-form">
+            <select name="category" required>
+              <option value="standard">Menu Standard</option>
+              <option value="vip">Menu VIP</option>
+              <option value="vvip">Menu VVIP</option>
+            </select>
+            <input type="text" name="name" placeholder="Nom du plat" required />
+            <textarea name="description" rows="3" placeholder="Description"></textarea>
+            <input type="number" name="price" placeholder="Prix en FCFA" min="0" required />
+            <input type="url" name="image" placeholder="URL de la photo" />
+            <button type="submit">Ajouter le plat</button>
+          </form>
+        </div>
+        <div class="admin-card">
+          <h2>Plats du restaurant</h2>
+          <div id="restaurant-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bar -->
+    <section class="admin-panel-section" id="tab-bar" hidden>
+      <div class="admin-grid">
+        <div class="admin-card">
+          <h2>Ajouter une boisson</h2>
+          <form id="bar-form">
+            <select name="category" required>
+              <option value="standard">Bar Standard</option>
+              <option value="vip">Salon VIP</option>
+              <option value="vvip">Expérience VVIP</option>
+            </select>
+            <input type="text" name="name" placeholder="Nom de la boisson" required />
+            <textarea name="description" rows="3" placeholder="Description"></textarea>
+            <input type="number" name="price" placeholder="Prix en FCFA" min="0" required />
+            <input type="url" name="image" placeholder="URL de la photo" />
+            <button type="submit">Ajouter la boisson</button>
+          </form>
+        </div>
+        <div class="admin-card">
+          <h2>Boissons du bar</h2>
+          <div id="bar-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
+        </div>
       </div>
     </section>
   </main>
 
   <footer class="footer">
-    <form method="post" action="/admin/logout">
-      <button type="submit" class="delete-btn">Déconnexion</button>
-    </form>
-    <p>© <span id="year"></span> Belhotel After Work. Tous droits réservés.</p>
+    <p>© <span id="year"></span> Belhotel After Work — Espace administration.</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>

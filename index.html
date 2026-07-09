@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Belhotel After Work | Hôtel de luxe</title>
-  <meta name="description" content="Belhotel After Work, un hôtel de luxe avec chambres élégantes, restaurant gastronomique et bar lounge." />
+  <title>Belhotel After Work | Hôtel, Restaurant &amp; Bar</title>
+  <meta name="description" content="Belhotel After Work, un complexe hôtelier avec chambres confortables, restaurant savoureux et bar lounge." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="hero hero-home">
     <nav class="top-nav">
-      <a class="brand" href="index.html">BELHOTEL</a>
+      <a class="brand" href="index.html">BEL<span>HOTEL</span></a>
       <button class="menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="site-nav">
         <span></span>
         <span></span>
@@ -21,17 +21,17 @@
         <a href="chambres.html">Chambres</a>
         <a href="restaurant.html">Restaurant</a>
         <a href="bar.html">Bar</a>
-        <a href="/admin/login" class="admin-link">Connexion admin</a>
+        <a href="admin-login.html" class="admin-link">Connexion admin</a>
       </div>
     </nav>
 
     <div class="hero-content">
       <p class="eyebrow">Complexe Belhotel After Work</p>
       <h1>Un séjour d’exception entre élégance et détente</h1>
-      <p>Découvrez un hôtel raffiné, un restaurant gastronomique et un bar lounge au cœur d’un cadre unique.</p>
+      <p>Découvrez un hôtel accueillant, un restaurant savoureux et un bar lounge au cœur d’un cadre unique.</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="chambres.html">Réserver une chambre</a>
-        <a class="btn btn-secondary" href="/admin/login">Connexion admin</a>
+        <a class="btn btn-secondary" href="restaurant.html">Découvrir le restaurant</a>
       </div>
     </div>
   </header>
@@ -45,12 +45,12 @@
       </div>
       <div class="highlights">
         <div class="highlight-card">
-          <h3>Chambres élégantes</h3>
+          <h3>Chambres confortables</h3>
           <p>Confort premium, literie soignée et ambiance chaleureuse.</p>
         </div>
         <div class="highlight-card">
-          <h3>Restaurant gastronomique</h3>
-          <p>Des plats raffinés préparés avec soin pour chaque repas.</p>
+          <h3>Restaurant savoureux</h3>
+          <p>Des plats préparés avec soin pour chaque repas.</p>
         </div>
         <div class="highlight-card">
           <h3>Bar lounge</h3>
@@ -61,25 +61,26 @@
 
     <section class="section cards-section">
       <article class="feature-card">
-        <h3>Hôtel de luxe</h3>
+        <h3>Hôtel</h3>
         <p>Des espaces modernes et confortables pour un séjour inoubliable.</p>
-        <a href="chambres.html">Voir les chambres</a>
+        <a href="chambres.html">Voir les chambres →</a>
       </article>
       <article class="feature-card">
         <h3>Restaurant</h3>
         <p>Une cuisine riche, variée et parfaitement maîtrisée.</p>
-        <a href="restaurant.html">Voir le restaurant</a>
+        <a href="restaurant.html">Voir le restaurant →</a>
       </article>
       <article class="feature-card">
         <h3>Bar Lounge</h3>
         <p>Une ambiance élégante pour profiter d’un moment convivial.</p>
-        <a href="bar.html">Découvrir le bar</a>
+        <a href="bar.html">Découvrir le bar →</a>
       </article>
     </section>
   </main>
 
   <footer class="footer">
-    <p>© 2026 Belhotel After Work. Tous droits réservés.</p>
+    <a class="brand" href="index.html">BEL<span>HOTEL</span></a>
+    <p>© <span id="year"></span> Belhotel After Work. Tous droits réservés.</p>
   </footer>
 
   <script src="script.js"></script>
