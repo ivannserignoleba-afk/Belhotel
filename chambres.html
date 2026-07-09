@@ -33,7 +33,7 @@
   <main>
     <section class="section">
       <h2 class="section-title">Nos chambres</h2>
-      <p class="section-subtitle">Toutes nos chambres disponibles, avec photos et tarifs par nuit.</p>
+      <p class="section-subtitle">Toutes nos chambres disponibles, avec photos et tarifs par nuit. Cliquez sur « Réserver » pour nous contacter directement sur WhatsApp.</p>
       <div class="grid-3" id="rooms-grid">
         <p class="empty-state">Chargement des chambres...</p>
       </div>
@@ -48,29 +48,6 @@
         <h3 id="modal-title"></h3>
         <p id="modal-description"></p>
       </div>
-    </div>
-  </div>
-
-  <div class="booking-modal" id="booking-modal" hidden>
-    <div class="booking-modal-content">
-      <button class="modal-close" type="button" id="booking-modal-close" aria-label="Fermer la réservation">×</button>
-      <h2>Réserver votre séjour</h2>
-      <p>Complétez le formulaire pour envoyer votre demande de réservation.</p>
-      <form id="booking-form">
-        <input type="text" name="room" id="booking-room" placeholder="Chambre" readonly required />
-        <input type="text" name="name" placeholder="Votre nom" required />
-        <input type="email" name="email" placeholder="Votre email" required />
-        <input type="tel" name="phone" placeholder="Votre téléphone (facultatif)" />
-        <label>Date d’arrivée
-          <input type="date" name="checkin" required />
-        </label>
-        <label>Date de départ
-          <input type="date" name="checkout" required />
-        </label>
-        <p class="booking-total" id="booking-total"></p>
-        <button type="submit" class="btn btn-primary">Envoyer la demande</button>
-      </form>
-      <p id="booking-message" class="booking-message" aria-live="polite"></p>
     </div>
   </div>
 

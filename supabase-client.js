@@ -15,3 +15,8 @@ const CATEGORY_LABELS = {
   vip: 'VIP',
   vvip: 'VVIP',
 };
+
+// Numéro WhatsApp de la réception (format international sans + ni espaces).
+// ⚠️ Numéro de test pour le moment — à remplacer par le numéro officiel.
+const WHATSAPP_NUMBER = '2250757432898';
+

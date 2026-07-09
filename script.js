@@ -34,10 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const page = document.body.dataset.page;
 
-  // ----- Page Chambres : liste dynamique + réservation -----
+  // ----- Page Chambres : liste dynamique + réservation WhatsApp -----
   if (page === 'chambres') {
     loadRooms();
-    setupBookingModal();
   }
 
   // ----- Pages Restaurant / Bar : menus dynamiques -----
@@ -56,10 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (event.target === photoModal) photoModal.hidden = true;
   });
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      if (photoModal && !photoModal.hidden) photoModal.hidden = true;
-      const bookingModal = document.getElementById('booking-modal');
-      if (bookingModal && !bookingModal.hidden) bookingModal.hidden = true;
+    if (event.key === 'Escape' && photoModal && !photoModal.hidden) {
+      photoModal.hidden = true;
     }
   });
 
@@ -109,104 +106,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       card.querySelector('.reserve-btn').addEventListener('click', () => {
-        openBookingModal(room);
+        const message = `Bonjour, je souhaite réserver la chambre « ${name} » (${formatPrice(room.price)}/nuit). Merci de me confirmer la disponibilité.`;
+        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
       });
 
       list.appendChild(card);
-    });
-  }
-
-  let selectedRoom = null;
-
-  function openBookingModal(room) {
-    selectedRoom = room;
-    const modal = document.getElementById('booking-modal');
-    if (!modal) return;
-    document.getElementById('booking-room').value = (room.name || '').trim();
-    document.getElementById('booking-total').textContent = '';
-    const message = document.getElementById('booking-message');
-    if (message) { message.textContent = ''; message.classList.remove('error'); }
-    modal.hidden = false;
-  }
-
-  function nightsBetween(checkin, checkout) {
-    const inDate = new Date(checkin);
-    const outDate = new Date(checkout);
-    return Math.round((outDate - inDate) / (1000 * 60 * 60 * 24));
-  }
-
-  function setupBookingModal() {
-    const modal = document.getElementById('booking-modal');
-    const closeBtn = document.getElementById('booking-modal-close');
-    const form = document.getElementById('booking-form');
-    const message = document.getElementById('booking-message');
-    if (!modal || !form) return;
-
-    closeBtn?.addEventListener('click', () => { modal.hidden = true; });
-    modal.addEventListener('click', (event) => {
-      if (event.target === modal) modal.hidden = true;
-    });
-
-    // Affiche le total dès que les dates changent
-    const updateTotal = () => {
-      const checkin = form.checkin.value;
-      const checkout = form.checkout.value;
-      const totalEl = document.getElementById('booking-total');
-      if (selectedRoom && checkin && checkout) {
-        const nights = nightsBetween(checkin, checkout);
-        if (nights > 0) {
-          totalEl.textContent = `${nights} nuit${nights > 1 ? 's' : ''} — Total : ${formatPrice(nights * selectedRoom.price)}`;
-          return;
-        }
-      }
-      totalEl.textContent = '';
-    };
-    form.checkin.addEventListener('change', updateTotal);
-    form.checkout.addEventListener('change', updateTotal);
-
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      if (!selectedRoom) return;
-
-      const checkin = form.checkin.value;
-      const checkout = form.checkout.value;
-      const nights = nightsBetween(checkin, checkout);
-
-      if (nights <= 0) {
-        message.textContent = 'La date de départ doit être après la date d’arrivée.';
-        message.classList.add('error');
-        return;
-      }
-
-      const submitBtn = form.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Envoi en cours...';
-
-      const { error } = await db.from('bookings').insert([{
-        room_id: selectedRoom.id,
-        customer_name: form.name.value.trim(),
-        customer_email: form.email.value.trim(),
-        customer_phone: form.phone.value.trim() || null,
-        check_in: checkin,
-        check_out: checkout,
-        total_price: nights * selectedRoom.price,
-        status: 'pending',
-      }]);
-
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Envoyer la demande';
-
-      if (error) {
-        message.textContent = 'Une erreur est survenue. Veuillez réessayer.';
-        message.classList.add('error');
-        return;
-      }
-
-      message.classList.remove('error');
-      message.textContent = `Merci ${form.name.value.trim()} ! Votre réservation pour « ${(selectedRoom.name || '').trim()} » a bien été enregistrée. Nous vous contacterons rapidement.`;
-      form.reset();
-      document.getElementById('booking-room').value = (selectedRoom.name || '').trim();
-      document.getElementById('booking-total').textContent = '';
     });
   }
 

@@ -29,65 +29,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // ----- Réservations -----
-  async function loadBookings() {
-    const container = document.getElementById('booking-list');
-    const { data: bookings, error } = await db
-      .from('bookings')
-      .select('*, rooms(name)')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      container.innerHTML = `<p class="empty-state">Erreur de chargement : ${error.message}</p>`;
-      return;
-    }
-    if (!bookings.length) {
-      container.innerHTML = '<p class="empty-state">Aucune réservation pour le moment.</p>';
-      return;
-    }
-
-    container.innerHTML = '';
-    bookings.forEach((booking) => {
-      const roomName = (booking.rooms?.name || 'Chambre supprimée').trim();
-      const statusLabel = booking.status === 'pending' ? 'En attente' : 'Confirmée';
-      const card = document.createElement('article');
-      card.className = 'admin-item';
-      card.innerHTML = `
-        <div class="admin-item-main">
-          <div>
-            <strong>${booking.customer_name}</strong>
-            <span class="badge status-${booking.status}">${statusLabel}</span>
-            <p>${roomName} — du ${booking.check_in} au ${booking.check_out}</p>
-            <p>${booking.customer_email}${booking.customer_phone ? ' · ' + booking.customer_phone : ''}</p>
-            <p class="price-tag">${formatPrice(booking.total_price)}</p>
-          </div>
-        </div>
-        <div class="admin-item-actions">
-          ${booking.status === 'pending' ? '<button class="confirm-btn" type="button">Confirmer</button>' : ''}
-          <button class="delete-btn" type="button">Supprimer</button>
-        </div>
-      `;
-
-      card.querySelector('.confirm-btn')?.addEventListener('click', async () => {
-        const { error: updateError } = await db
-          .from('bookings')
-          .update({ status: 'confirmed' })
-          .eq('id', booking.id);
-        if (updateError) alert('Erreur : ' + updateError.message);
-        else loadBookings();
-      });
-
-      card.querySelector('.delete-btn').addEventListener('click', async () => {
-        if (!confirm(`Supprimer la réservation de ${booking.customer_name} ?`)) return;
-        const { error: deleteError } = await db.from('bookings').delete().eq('id', booking.id);
-        if (deleteError) alert('Erreur : ' + deleteError.message);
-        else loadBookings();
-      });
-
-      container.appendChild(card);
-    });
-  }
-
   // ----- Chambres -----
   async function loadRooms() {
     const container = document.getElementById('room-list');
@@ -248,7 +189,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const loadRestaurant = menuHandlers('restaurant_menu', 'restaurant-form', 'restaurant-list', 'plat');
   const loadBar = menuHandlers('bar_menu', 'bar-form', 'bar-list', 'boisson');
 
-  loadBookings();
   loadRooms();
   loadRestaurant();
   loadBar();
