@@ -151,6 +151,36 @@ img { max-width: 100%; display: block; }
 .hs-content h1 { font-size: clamp(2rem, 4.2vw, 3.4rem); margin: 0.4rem 0 1rem; line-height: 1.15; }
 .hs-content p { color: rgba(255,255,255,0.92); max-width: 640px; margin: 0 auto; }
 
+.hero-slider-compact { min-height: 62vh; }
+.hero-fixed-content {
+  position: relative;
+  z-index: 10;
+  max-width: 760px;
+  margin: auto;
+  text-align: center;
+  padding: 3rem 0 4rem;
+}
+.hero-fixed-content .eyebrow { color: #ffb37a; }
+.hero-fixed-content h1 { font-size: clamp(1.9rem, 3.8vw, 3rem); margin: 0.4rem 0 1rem; line-height: 1.15; }
+.hero-fixed-content p { color: rgba(255,255,255,0.92); margin: 0 auto; }
+
+.amenities-band {
+  max-width: 1000px;
+  margin: -2.4rem auto 0;
+  position: relative;
+  z-index: 12;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  display: flex;
+  justify-content: space-around;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  padding: 1.1rem 1.4rem;
+}
+.amenities-band span { font-weight: 600; color: var(--text); }
+
 .hs-dots {
   position: absolute;
   bottom: 1.6rem;
@@ -266,17 +296,58 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
   padding: 1rem 0;
 }
 
-.room-card h3 { margin: 0.2rem 0 0.4rem; }
-.room-card p { margin: 0.3rem 0; color: var(--muted); }
-.room-card .price-tag { color: var(--primary-dark); }
+.room-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+.room-media {
+  position: relative;
+  overflow: hidden;
+  height: 230px;
+}
+.room-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease, opacity 0.4s ease;
+}
+.room-card:hover .room-media img { transform: scale(1.06); }
+.room-badge {
+  position: absolute;
+  top: 0.8rem;
+  left: 0.8rem;
+  background: #16a34a;
+  color: #fff;
+  padding: 0.25rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+.room-body {
+  padding: 1.2rem 1.3rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.room-body h3 { margin: 0 0 0.4rem; font-size: 1.15rem; }
+.room-body p { margin: 0.2rem 0; color: var(--muted); }
+.room-body .price-tag {
+  font-size: 1.15rem;
+  margin-top: 0.7rem;
+}
+.room-body .price-tag span {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted);
+}
 .room-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
-  margin-top: 1rem;
+  margin-top: auto;
+  padding-top: 1rem;
 }
 .room-actions .btn { margin-top: 0; flex: 1 1 0; text-align: center; }
-.reserve-btn { margin-top: 0; width: 100%; }
+.reserve-btn { margin-top: 0; }
 
 /* ----- Cartes de menus (restaurant / bar) ----- */
 .category-section {

@@ -34,21 +34,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const page = document.body.dataset.page;
 
-  // ----- Page d'accueil : diaporama + aperçu des chambres -----
-  if (page === 'home') {
-    initSlider();
-    loadRoomsPreview();
+  // ----- Diaporama (accueil, chambres...) -----
+  initSlider();
 
-    // Boutons WhatsApp génériques (héros, bandeau, footer)
-    const genericMessage = 'Bonjour, je vous contacte depuis le site du Belhotel After Work. Je souhaite des informations.';
-    ['hero-whatsapp', 'cta-whatsapp', 'footer-whatsapp'].forEach((id) => {
-      const link = document.getElementById(id);
-      if (link) {
-        link.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(genericMessage)}`;
-        link.target = '_blank';
-        link.rel = 'noopener';
-      }
-    });
+  // ----- Boutons WhatsApp génériques (héros, bandeau, footer) -----
+  const genericMessage = 'Bonjour, je vous contacte depuis le site du Belhotel After Work. Je souhaite des informations.';
+  ['hero-whatsapp', 'cta-whatsapp', 'footer-whatsapp'].forEach((id) => {
+    const link = document.getElementById(id);
+    if (link) {
+      link.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(genericMessage)}`;
+      link.target = '_blank';
+      link.rel = 'noopener';
+    }
+  });
+
+  // ----- Page d'accueil : aperçu des chambres -----
+  if (page === 'home') {
+    loadRoomsPreview();
   }
 
   // ----- Page Chambres : liste dynamique + réservation WhatsApp -----
@@ -97,6 +99,57 @@ document.addEventListener('DOMContentLoaded', () => {
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
   }
 
+  // Carte de chambre commune (accueil + page Chambres).
+  // Si la chambre a plusieurs photos, elles défilent automatiquement.
+  function buildRoomCard(room, { withPreview } = {}) {
+    const images = (room.image_urls || []).filter(Boolean);
+    const mainImage = images[0] || 'https://kywrazusfmumigbjktaz.supabase.co/storage/v1/object/public/belhotel-images/rooms/1778854766853-photo_2026-05-08_15-43-52.jpg';
+    const name = (room.name || '').trim();
+
+    const card = document.createElement('article');
+    card.className = 'room-card';
+    card.innerHTML = `
+      <div class="room-media">
+        <img src="${mainImage}" alt="${name}" loading="lazy" />
+        <span class="room-badge">Disponible</span>
+      </div>
+      <div class="room-body">
+        <h3>${name}</h3>
+        <p>${room.description || 'Chambre confortable du complexe Belhotel.'}</p>
+        <p class="price-tag">${formatPrice(room.price)} <span>/ nuit</span></p>
+        <div class="room-actions">
+          ${withPreview ? '<button class="btn btn-outline preview-btn" type="button">Voir la photo</button>' : ''}
+          <a class="btn btn-primary reserve-btn" href="${whatsappReserveUrl(room)}" target="_blank" rel="noopener">Réserver</a>
+        </div>
+      </div>
+    `;
+
+    const imgEl = card.querySelector('.room-media img');
+
+    // Mini-diapo : rotation automatique des photos de la chambre
+    if (images.length > 1) {
+      let idx = 0;
+      setInterval(() => {
+        idx = (idx + 1) % images.length;
+        imgEl.src = images[idx];
+      }, 4000);
+    }
+
+    if (withPreview) {
+      card.querySelector('.preview-btn').addEventListener('click', () => {
+        const modal = document.getElementById('room-modal');
+        if (!modal) return;
+        document.getElementById('modal-image').src = imgEl.src;
+        document.getElementById('modal-image').alt = name;
+        document.getElementById('modal-title').textContent = name;
+        document.getElementById('modal-description').textContent = room.description || '';
+        modal.hidden = false;
+      });
+    }
+
+    return card;
+  }
+
   async function loadRoomsPreview() {
     const list = document.getElementById('home-rooms-grid');
     if (!list) return;
@@ -115,18 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     list.innerHTML = '';
     rooms.forEach((room) => {
-      const image = (room.image_urls && room.image_urls[0]) || '';
-      const name = (room.name || '').trim();
-      const card = document.createElement('article');
-      card.className = 'room-card';
-      card.innerHTML = `
-        ${image ? `<img src="${image}" alt="${name}" class="item-image" loading="lazy" />` : ''}
-        <h3>${name}</h3>
-        <p>${room.description || 'Chambre confortable du complexe Belhotel.'}</p>
-        <p class="price-tag">${formatPrice(room.price)} / nuit</p>
-        <a class="btn btn-primary reserve-btn" href="${whatsappReserveUrl(room)}" target="_blank" rel="noopener">Réserver sur WhatsApp</a>
-      `;
-      list.appendChild(card);
+      list.appendChild(buildRoomCard(room));
     });
   }
 
@@ -172,35 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     list.innerHTML = '';
     rooms.forEach((room) => {
-      const image = (room.image_urls && room.image_urls[0]) || 'images/slide2.jpg';
-      const name = (room.name || '').trim();
-      const card = document.createElement('article');
-      card.className = 'room-card';
-      card.innerHTML = `
-        <img src="${image}" alt="${name}" class="item-image" loading="lazy" />
-        <h3>${name}</h3>
-        <p>${room.description || 'Chambre confortable du complexe Belhotel.'}</p>
-        <p class="price-tag">${formatPrice(room.price)} / nuit</p>
-        <div class="room-actions">
-          <button class="btn btn-outline preview-btn" type="button">Voir la photo</button>
-          <button class="btn btn-primary reserve-btn" type="button">Réserver</button>
-        </div>
-      `;
-
-      card.querySelector('.preview-btn').addEventListener('click', () => {
-        const modal = document.getElementById('room-modal');
-        document.getElementById('modal-image').src = image;
-        document.getElementById('modal-image').alt = name;
-        document.getElementById('modal-title').textContent = name;
-        document.getElementById('modal-description').textContent = room.description || '';
-        modal.hidden = false;
-      });
-
-      card.querySelector('.reserve-btn').addEventListener('click', () => {
-        window.open(whatsappReserveUrl(room), '_blank');
-      });
-
-      list.appendChild(card);
+      list.appendChild(buildRoomCard(room, { withPreview: true }));
     });
   }
 

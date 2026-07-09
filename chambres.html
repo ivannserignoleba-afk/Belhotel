@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Belhotel | Chambres</title>
-  <link rel="stylesheet" href="styles.css?v=4" />
+  <link rel="stylesheet" href="styles.css?v=5" />
 </head>
 <body data-page="chambres">
-  <header class="hero hero-chambres">
+  <header class="hero-slider hero-slider-compact" id="hero-slider">
     <nav class="top-nav">
       <a class="brand" href="index.html">BEL<span>HOTEL</span></a>
       <button class="menu-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="site-nav">
@@ -23,17 +23,37 @@
         <a href="admin-login.html" class="admin-link">Connexion admin</a>
       </div>
     </nav>
-    <div class="hero-content">
+
+    <div class="hs-slides">
+      <div class="hs-slide is-active" style="background-image: linear-gradient(rgba(30,18,10,0.5), rgba(30,18,10,0.68)), url('https://kywrazusfmumigbjktaz.supabase.co/storage/v1/object/public/belhotel-images/rooms/1778854766853-photo_2026-05-08_15-43-52.jpg')"></div>
+      <div class="hs-slide" style="background-image: linear-gradient(rgba(30,18,10,0.5), rgba(30,18,10,0.68)), url('https://kywrazusfmumigbjktaz.supabase.co/storage/v1/object/public/belhotel-images/rooms/1778855021766-photo_2026-05-08_15-43-49.jpg')"></div>
+      <div class="hs-slide" style="background-image: linear-gradient(rgba(30,18,10,0.5), rgba(30,18,10,0.68)), url('https://kywrazusfmumigbjktaz.supabase.co/storage/v1/object/public/belhotel-images/rooms/1778889563322-photo_2026-05-08_15-43-43.jpg')"></div>
+    </div>
+
+    <div class="hero-fixed-content">
       <p class="eyebrow">Hôtel</p>
       <h1>Des chambres confortables pour un séjour paisible</h1>
-      <p>Choisissez votre chambre et réservez en quelques clics. Nous vous confirmons rapidement.</p>
+      <p>Choisissez votre chambre et réservez directement sur WhatsApp : notre réception vous répond immédiatement.</p>
     </div>
+
+    <div class="hs-dots" role="tablist"></div>
   </header>
+
+  <div class="amenities-band">
+    <span>🌬️ Climatisation</span>
+    <span>📺 Télévision</span>
+    <span>🛏️ Literie soignée</span>
+    <span>🕐 Accueil 24h/24</span>
+  </div>
 
   <main>
     <section class="section">
-      <h2 class="section-title">Nos chambres</h2>
-      <p class="section-subtitle">Toutes nos chambres disponibles, avec photos et tarifs par nuit. Cliquez sur « Réserver » pour nous contacter directement sur WhatsApp.</p>
+      <div class="section-head-row">
+        <div>
+          <p class="eyebrow">Nos chambres</p>
+          <h2 class="section-title">Trouvez la chambre qu’il vous faut</h2>
+        </div>
+      </div>
       <div class="grid-3" id="rooms-grid">
         <p class="empty-state">Chargement des chambres...</p>
       </div>
@@ -51,13 +71,35 @@
     </div>
   </div>
 
-  <footer class="footer">
-    <a class="brand" href="index.html">BEL<span>HOTEL</span></a>
-    <p>© <span id="year"></span> Belhotel After Work. Tous droits réservés.</p>
+  <section class="cta-band">
+    <h2>Une question ? Une réservation ?</h2>
+    <p>Notre réception vous répond directement sur WhatsApp, 7j/7.</p>
+    <a class="btn btn-whatsapp" href="#" id="cta-whatsapp">💬 Discuter sur WhatsApp</a>
+  </section>
+
+  <footer class="footer footer-rich">
+    <div class="footer-grid">
+      <div>
+        <a class="brand" href="index.html">BEL<span>HOTEL</span></a>
+        <p>Hôtel · Restaurant · Bar Lounge<br />Un complexe unique pour vos séjours et vos soirées.</p>
+      </div>
+      <div>
+        <h4>Le complexe</h4>
+        <a href="chambres.html">Nos chambres</a>
+        <a href="restaurant.html">Le restaurant</a>
+        <a href="bar.html">Le bar lounge</a>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <a href="#" id="footer-whatsapp">WhatsApp : +225 07 57 43 28 98</a>
+        <p>Côte d’Ivoire</p>
+      </div>
+    </div>
+    <p class="footer-bottom">© <span id="year"></span> Belhotel After Work. Tous droits réservés.</p>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=4"></script>
-  <script src="script.js?v=4"></script>
+  <script src="supabase-client.js?v=5"></script>
+  <script src="script.js?v=5"></script>
 </body>
 </html>
