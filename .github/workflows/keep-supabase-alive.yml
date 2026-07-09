@@ -1,0 +1,32 @@
+# Ping automatique de la base Supabase pour éviter la mise en pause
+# (les projets Supabase gratuits sont mis en pause après ~7 jours sans activité).
+# S'exécute tous les 2 jours sur GitHub Actions + lançable à la main (workflow_dispatch).
+name: Keep Supabase alive
+
+on:
+  schedule:
+    - cron: '0 6 */2 * *' # tous les 2 jours à 06h00 UTC
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping de la base Supabase
+        run: |
+          # La clé "anon" est publique par conception (elle est déjà exposée
+          # dans le code front) — ce n'est PAS la clé service_role.
+          ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5d3JhenVzZm11bWlnYmprdGF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMjM0OTksImV4cCI6MjA5Mjg5OTQ5OX0.RhEC-auUfjaTyWoqYaC2E11uewHQ90FWHmjE349fiBk"
+          URL="https://kywrazusfmumigbjktaz.supabase.co"
+
+          # Requête sur une vraie table pour générer de l'activité côté base
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$URL/rest/v1/rooms?select=id&limit=1" \
+            -H "apikey: $ANON_KEY" \
+            -H "Authorization: Bearer $ANON_KEY")
+
+          echo "Réponse Supabase: HTTP $STATUS"
+          if [ "$STATUS" -ge 500 ]; then
+            echo "La base semble indisponible." && exit 1
+          fi
+          echo "✅ Base Supabase active."
