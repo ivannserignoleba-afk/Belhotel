@@ -126,12 +126,19 @@ img { max-width: 100%; display: block; }
   background-position: center;
   background-size: cover;
   opacity: 0;
-  transition: opacity 1.1s ease;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 1.1s ease, visibility 1.1s ease;
   display: grid;
   place-items: center;
   padding: 5rem 1.5rem 6rem;
 }
-.hs-slide.is-active { opacity: 1; z-index: 5; }
+.hs-slide.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  z-index: 5;
+}
 .hs-content {
   max-width: 780px;
   text-align: center;
@@ -236,13 +243,16 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
 .section-title { margin: 0 0 0.3rem; font-size: 1.7rem; }
 .section-subtitle { color: var(--muted); margin-top: 0; }
 
-.intro-section {
-  display: grid;
-  gap: 1.5rem;
-  align-items: start;
-  grid-template-columns: 1.2fr 0.8fr;
-}
-.highlights, .cards-section { display: grid; gap: 1rem; }
+.intro-section { text-align: center; }
+.intro-text { max-width: 760px; margin: 0 auto 2rem; }
+.intro-text h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); margin: 0.4rem 0 0.8rem; }
+.intro-text p { color: var(--muted); }
+.highlights, .cards-section { display: grid; gap: 1.2rem; }
+.highlights { grid-template-columns: repeat(3, 1fr); }
+.highlight-card { text-align: center; padding: 1.8rem 1.4rem; }
+.highlight-icon { font-size: 2.2rem; line-height: 1; margin-bottom: 0.6rem; }
+.highlight-card h3 { margin: 0 0 0.5rem; }
+.highlight-card p { margin: 0; color: var(--muted); }
 .cards-section { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 
 .highlight-card, .feature-card, .room-card, .menu-card, .bar-card {
@@ -738,7 +748,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
   .nav-links a.active, .nav-links a:hover { background: var(--primary-soft); color: var(--primary-deep); }
   .nav-links .admin-link { color: #fff; text-align: center; }
   .nav-links.open { display: flex; }
-  .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  .grid-3, .grid-2, .highlights { grid-template-columns: 1fr; }
   main { padding: 1.25rem 1rem 2.5rem; }
   .hero h1 { font-size: clamp(1.7rem, 6vw, 2.5rem); }
   .hero p { font-size: 0.98rem; }
