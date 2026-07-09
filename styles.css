@@ -65,11 +65,16 @@ img { max-width: 100%; display: block; }
 }
 .nav-links a.active, .nav-links a:hover { background: rgba(255,255,255,0.14); color: #fff; }
 .nav-links .admin-link {
-  background: var(--primary);
+  background: var(--primary-dark);
   color: #fff;
   font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  border-radius: 8px;
+  padding: 0.55rem 1.1rem;
 }
-.nav-links .admin-link:hover { background: var(--primary-dark); color: #fff; }
+.nav-links .admin-link:hover { background: var(--primary-deep); color: #fff; }
 
 .menu-toggle {
   display: none;
@@ -225,35 +230,41 @@ img { max-width: 100%; display: block; }
 
 /* ----- Boutons ----- */
 .btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   margin-top: 1.5rem;
-  padding: 0.9rem 1.4rem;
-  border-radius: 999px;
+  padding: 0.95rem 1.8rem;
+  border-radius: 10px;
+  font-family: 'Manrope', 'Segoe UI', sans-serif;
   font-weight: 700;
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  white-space: nowrap;
+  line-height: 1;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
 }
-.btn:hover { transform: translateY(-2px); }
 .btn-primary {
-  background: var(--primary);
+  background: var(--primary-dark);
   color: #fff;
-  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.35);
 }
-.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:hover { background: var(--primary-deep); }
 .btn-secondary {
   background: transparent;
   color: #fff;
-  border: 1.5px solid rgba(255,255,255,0.55);
+  border: 1px solid rgba(255,255,255,0.6);
 }
-.btn-secondary:hover { background: rgba(255,255,255,0.15); }
+.btn-secondary:hover { background: #fff; color: var(--text); border-color: #fff; }
 .btn-outline {
-  background: #fff;
-  color: var(--primary-dark);
-  border: 1.5px solid var(--primary);
+  background: transparent;
+  color: var(--text);
+  border: 1px solid #ddcfc1;
 }
-.btn-outline:hover { background: var(--primary-soft); }
+.btn-outline:hover { border-color: var(--primary-dark); color: var(--primary-dark); background: transparent; }
 .hero-actions {
   display: flex;
   gap: 0.8rem;
@@ -262,17 +273,12 @@ img { max-width: 100%; display: block; }
   margin-top: 1.2rem;
 }
 .btn-whatsapp {
-  background: #25d366;
+  background: #1da851;
   color: #fff;
-  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
 }
-.btn-whatsapp:hover { background: #1eb457; color: #fff; }
+.btn-whatsapp:hover { background: #178f44; color: #fff; }
 
-.icon { width: 21px; height: 21px; flex-shrink: 0; }
+.icon { width: 19px; height: 19px; flex-shrink: 0; }
 
 /* ----- Sections ----- */
 main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
@@ -649,13 +655,17 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
 }
 .login-form input:focus { outline: 2px solid var(--primary); border-color: var(--primary); }
 .login-form button {
-  background: var(--primary);
+  background: var(--primary-dark);
   color: #fff;
   font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
   cursor: pointer;
   border: none;
+  border-radius: 10px;
 }
-.login-form button:hover { background: var(--primary-dark); }
+.login-form button:hover { background: var(--primary-deep); }
 .login-form button:disabled { opacity: 0.6; cursor: wait; }
 .login-note { margin-top: 1rem; color: var(--muted); font-size: 0.92rem; }
 .login-error { margin-top: 0.8rem; color: #b91c1c; font-weight: 600; min-height: 1.2rem; }
@@ -688,16 +698,19 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
   font-size: 0.95rem;
 }
 .logout-btn {
-  border: 1.5px solid var(--primary);
-  border-radius: 999px;
-  padding: 0.5rem 1.1rem;
+  border: 1px solid #ddcfc1;
+  border-radius: 8px;
+  padding: 0.55rem 1.1rem;
   background: #fff;
-  color: var(--primary-dark);
+  color: var(--text);
   cursor: pointer;
   font-weight: 700;
-  font: inherit;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: inherit;
 }
-.logout-btn:hover { background: var(--primary-soft); }
+.logout-btn:hover { border-color: var(--primary-dark); color: var(--primary-dark); }
 
 .admin-tabs {
   display: flex;
@@ -752,12 +765,16 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
 }
 .admin-card button {
   cursor: pointer;
-  background: var(--primary);
+  background: var(--primary-dark);
   color: #fff;
   font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
   border: none;
+  border-radius: 10px;
 }
-.admin-card button:hover { background: var(--primary-dark); }
+.admin-card button:hover { background: var(--primary-deep); }
 .admin-card button:disabled { opacity: 0.6; cursor: wait; }
 .admin-card .hint { color: var(--muted); font-size: 0.92rem; }
 
@@ -797,30 +814,35 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
 .badge.status-confirmed { background: #dcfce7; color: #166534; }
 
 .delete-btn {
-  border: none;
-  border-radius: 999px;
-  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
   background: #fff;
-  border: 1.5px solid #ef4444;
+  border: 1px solid #fca5a5;
   color: #b91c1c;
   cursor: pointer;
   font-weight: 700;
-  font: inherit;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: inherit;
   flex-shrink: 0;
 }
-.delete-btn:hover { background: #fee2e2; }
+.delete-btn:hover { background: #fee2e2; border-color: #ef4444; }
 .confirm-btn {
   border: none;
-  border-radius: 999px;
-  padding: 0.55rem 0.9rem;
-  background: #16a34a;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  background: #15803d;
   color: #fff;
   cursor: pointer;
   font-weight: 700;
-  font: inherit;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: inherit;
   flex-shrink: 0;
 }
-.confirm-btn:hover { background: #15803d; }
+.confirm-btn:hover { background: #14532d; }
 .admin-item-actions { display: grid; gap: 0.4rem; }
 
 /* ----- Responsive ----- */

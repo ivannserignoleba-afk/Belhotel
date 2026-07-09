@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>${room.description || 'Chambre confortable du complexe Belhotel.'}</p>
         <p class="price-tag">${formatPrice(room.price)} <span>/ nuit</span></p>
         <div class="room-actions">
-          ${withPreview ? '<button class="btn btn-outline preview-btn" type="button">Voir la photo</button>' : ''}
+          ${withPreview ? '<button class="btn btn-outline preview-btn" type="button">Photos</button>' : ''}
           <a class="btn btn-primary reserve-btn" href="${whatsappReserveUrl(room)}" target="_blank" rel="noopener">Réserver</a>
         </div>
       </div>
