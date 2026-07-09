@@ -412,29 +412,294 @@ document.addEventListener('DOMContentLoaded', async () => {
     setInterval(refreshAllBoards, 30000);
   }
 
-  // ----- Aperçu : compteurs (superadmin) -----
+  // ----- Aperçu : dashboard de direction (superadmin) -----
   if (sections.includes('overview')) {
     loadStats();
   }
 
   async function loadStats() {
     const grid = document.getElementById('stat-grid');
-    const stats = [
-      { table: 'rooms', label: 'Chambres' },
-      { table: 'restaurant_menu', label: 'Plats au menu' },
-      { table: 'bar_menu', label: 'Boissons à la carte' },
-      { table: 'orders', label: 'Commandes' },
-      { table: 'service_requests', label: 'Demandes de service' },
-      { table: 'qr_points', label: 'QR codes actifs' },
+    if (!grid) return;
+
+    const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const [{ data: orders }, requestsRes, roomsRes] = await Promise.all([
+      db.from('orders').select('*, order_items(item_name, qty, unit_price)').gte('created_at', since).limit(1000),
+      db.from('service_requests').select('*', { count: 'exact', head: true }).neq('status', 'done'),
+      db.from('rooms').select('*', { count: 'exact', head: true }).eq('status', 'available'),
+    ]);
+
+    const valid = (orders || []).filter((order) => order.status !== 'cancelled');
+    const today = valid.filter((order) => new Date(order.created_at) >= todayStart);
+    const inProgress = (orders || []).filter((order) => ['reception', 'sent', 'preparing'].includes(order.status));
+    const sum = (list) => list.reduce((total, order) => total + (order.total || 0), 0);
+
+    const tiles = [
+      { value: formatPrice(sum(today)), label: 'Chiffre d’affaires aujourd’hui' },
+      { value: formatPrice(sum(valid)), label: 'Chiffre d’affaires (30 jours)' },
+      { value: today.length, label: 'Commandes aujourd’hui' },
+      { value: inProgress.length, label: 'Commandes en cours' },
+      { value: requestsRes.count ?? 0, label: 'Demandes de service ouvertes' },
+      { value: roomsRes.count ?? 0, label: 'Chambres disponibles' },
     ];
     grid.innerHTML = '';
-    for (const stat of stats) {
-      const { count } = await db.from(stat.table).select('*', { count: 'exact', head: true });
-      const tile = document.createElement('div');
-      tile.className = 'stat-tile';
-      tile.innerHTML = `<strong>${count ?? 0}</strong><span>${stat.label}</span>`;
-      grid.appendChild(tile);
+    tiles.forEach((tile) => {
+      const element = document.createElement('div');
+      element.className = 'stat-tile';
+      element.innerHTML = `<strong>${tile.value}</strong><span>${tile.label}</span>`;
+      grid.appendChild(element);
+    });
+
+    // Articles les plus vendus
+    const itemTotals = new Map();
+    valid.forEach((order) => {
+      (order.order_items || []).forEach((line) => {
+        const entry = itemTotals.get(line.item_name) || { qty: 0, revenue: 0 };
+        entry.qty += line.qty;
+        entry.revenue += line.qty * line.unit_price;
+        itemTotals.set(line.item_name, entry);
+      });
+    });
+    const top = [...itemTotals.entries()].sort((a, b) => b[1].qty - a[1].qty).slice(0, 6);
+    const topContainer = document.getElementById('top-items');
+    if (!top.length) {
+      topContainer.innerHTML = '<p class="empty-state">Aucune vente sur les 30 derniers jours.</p>';
+    } else {
+      const maxQty = top[0][1].qty;
+      topContainer.innerHTML = top.map(([name, entry]) => `
+        <div class="rank-row">
+          <div class="rank-info">
+            <strong>${name}</strong>
+            <span>${entry.qty} vendus · ${formatPrice(entry.revenue)}</span>
+          </div>
+          <div class="rank-bar"><div style="width:${Math.round((entry.qty / maxQty) * 100)}%"></div></div>
+        </div>
+      `).join('');
     }
+
+    // Activité par section
+    const bySection = { resto: { count: 0, revenue: 0 }, bar: { count: 0, revenue: 0 } };
+    valid.forEach((order) => {
+      bySection[order.target].count += 1;
+      bySection[order.target].revenue += order.total || 0;
+    });
+    const byOrigin = { room: 0, table: 0, salon: 0 };
+    valid.forEach((order) => { byOrigin[order.origin_type] += 1; });
+
+    document.getElementById('section-activity').innerHTML = `
+      <div class="rank-row"><div class="rank-info"><strong>Restaurant</strong><span>${bySection.resto.count} commandes · ${formatPrice(bySection.resto.revenue)}</span></div></div>
+      <div class="rank-row"><div class="rank-info"><strong>Bar</strong><span>${bySection.bar.count} commandes · ${formatPrice(bySection.bar.revenue)}</span></div></div>
+      <div class="rank-row"><div class="rank-info"><strong>Origine des commandes</strong><span>${byOrigin.room} chambres · ${byOrigin.table} tables · ${byOrigin.salon} salons</span></div></div>
+    `;
+  }
+
+  // ================= PERSONNEL (superadmin) =================
+
+  const ROLE_OPTIONS = [
+    ['reception', 'Réception'],
+    ['resto', 'Restauration'],
+    ['bar', 'Bar'],
+    ['superadmin', 'Super Admin'],
+  ];
+
+  if (sections.includes('staff')) {
+    initStaffPanel();
+  }
+
+  function initStaffPanel() {
+    loadStaffList();
+
+    // Client auth secondaire : créer un compte sans toucher à ma session
+    const signupClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    document.getElementById('staff-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.target;
+      const feedback = document.getElementById('staff-feedback');
+      const button = form.querySelector('button[type="submit"]');
+      feedback.textContent = '';
+      feedback.classList.remove('error');
+      button.disabled = true;
+
+      const email = form.email.value.trim().toLowerCase();
+
+      const { error: signupError } = await signupClient.auth.signUp({
+        email,
+        password: form.password.value,
+      });
+
+      if (signupError && !/already/i.test(signupError.message)) {
+        button.disabled = false;
+        feedback.textContent = 'Erreur : ' + signupError.message;
+        feedback.classList.add('error');
+        return;
+      }
+
+      const { error: rowError } = await db.from('admins').upsert([{
+        email,
+        password_hash: '(supabase-auth)',
+        is_active: true,
+        role: form.role.value,
+        full_name: form.full_name.value.trim(),
+      }], { onConflict: 'email' });
+
+      button.disabled = false;
+      if (rowError) {
+        feedback.textContent = 'Erreur : ' + rowError.message;
+        feedback.classList.add('error');
+        return;
+      }
+
+      feedback.textContent = `Compte créé : ${email} peut se connecter dès maintenant.`;
+      form.reset();
+      loadStaffList();
+    });
+  }
+
+  async function loadStaffList() {
+    const container = document.getElementById('staff-list');
+    const { data: staffList, error } = await db
+      .from('admins')
+      .select('*')
+      .order('role')
+      .order('full_name');
+
+    if (error) {
+      container.innerHTML = `<p class="empty-state">Erreur de chargement : ${error.message}</p>`;
+      return;
+    }
+
+    container.innerHTML = '';
+    staffList.forEach((member) => {
+      const isMe = member.email === session.user.email;
+      const card = document.createElement('article');
+      card.className = 'admin-item';
+      const roleOptions = ROLE_OPTIONS
+        .map(([value, label]) => `<option value="${value}" ${member.role === value ? 'selected' : ''}>${label}</option>`)
+        .join('');
+      card.innerHTML = `
+        <div class="admin-item-main">
+          <div>
+            <strong>${member.full_name || member.email}</strong>
+            <span class="badge ${member.is_active ? 'status-confirmed' : 'status-cancelled'}">${member.is_active ? 'Actif' : 'Désactivé'}</span>
+            <p>${member.email}</p>
+            <div class="staff-role-row">
+              <select class="staff-role" ${isMe ? 'disabled' : ''}>${roleOptions}</select>
+            </div>
+          </div>
+        </div>
+        <div class="admin-item-actions">
+          ${isMe ? '<p class="hint">C’est vous</p>' : `<button type="button" class="${member.is_active ? 'delete-btn' : 'confirm-btn'} staff-toggle">${member.is_active ? 'Désactiver' : 'Réactiver'}</button>`}
+        </div>
+      `;
+
+      if (!isMe) {
+        card.querySelector('.staff-role').addEventListener('change', async (event) => {
+          const { error: roleError } = await db
+            .from('admins')
+            .update({ role: event.target.value })
+            .eq('id', member.id);
+          if (roleError) { alert('Erreur : ' + roleError.message); loadStaffList(); }
+        });
+
+        card.querySelector('.staff-toggle')?.addEventListener('click', async () => {
+          const { error: toggleError } = await db
+            .from('admins')
+            .update({ is_active: !member.is_active })
+            .eq('id', member.id);
+          if (toggleError) alert('Erreur : ' + toggleError.message);
+          else loadStaffList();
+        });
+      }
+
+      container.appendChild(card);
+    });
+  }
+
+  // ================= STOCK =================
+
+  const STOCK_TABLES_BY_ROLE = {
+    superadmin: ['resto', 'bar'],
+    resto: ['resto'],
+    bar: ['bar'],
+  };
+
+  if (sections.includes('stock')) {
+    initStockPanel();
+  }
+
+  function initStockPanel() {
+    const targets = STOCK_TABLES_BY_ROLE[role] || [];
+    targets.forEach((target) => {
+      document.getElementById(`stock-${target}-card`).hidden = false;
+      loadStockList(target);
+    });
+  }
+
+  async function loadStockList(target) {
+    const table = target === 'resto' ? 'restaurant_menu' : 'bar_menu';
+    const container = document.getElementById(`stock-${target}-list`);
+
+    const { data: items, error } = await db
+      .from(table)
+      .select('*')
+      .order('category')
+      .order('name');
+
+    if (error) {
+      container.innerHTML = `<p class="empty-state">Erreur de chargement : ${error.message}</p>`;
+      return;
+    }
+    if (!items.length) {
+      container.innerHTML = '<p class="empty-state">Aucun article. Ajoutez-en d’abord dans le menu.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+    items.forEach((item) => {
+      const stock = item.stock_qty;
+      let badge;
+      if (stock === null) badge = '<span class="badge">Illimité</span>';
+      else if (stock === 0) badge = '<span class="badge status-cancelled">Rupture</span>';
+      else if (stock <= 5) badge = `<span class="badge status-pending">Stock bas : ${stock}</span>`;
+      else badge = `<span class="badge status-confirmed">${stock} restants</span>`;
+
+      const card = document.createElement('article');
+      card.className = 'admin-item';
+      card.innerHTML = `
+        <div class="admin-item-main">
+          <div>
+            <strong>${item.name}</strong>
+            ${badge}
+            <p>${CATEGORY_LABELS[item.category] || item.category} · ${formatPrice(item.price)}</p>
+          </div>
+        </div>
+        <div class="admin-item-actions stock-actions">
+          <input type="number" min="0" class="stock-input" placeholder="Qté" value="${stock ?? ''}" />
+          <button type="button" class="confirm-btn stock-save">Enregistrer</button>
+          <button type="button" class="qr-toggle stock-unlimited">Illimité</button>
+        </div>
+      `;
+
+      const saveStock = async (value) => {
+        const { error: stockError } = await db.from(table).update({ stock_qty: value }).eq('id', item.id);
+        if (stockError) alert('Erreur : ' + stockError.message);
+        else loadStockList(target);
+      };
+
+      card.querySelector('.stock-save').addEventListener('click', () => {
+        const raw = card.querySelector('.stock-input').value;
+        if (raw === '' || Number(raw) < 0) { alert('Indiquez une quantité valide.'); return; }
+        saveStock(Number(raw));
+      });
+      card.querySelector('.stock-unlimited').addEventListener('click', () => saveStock(null));
+
+      container.appendChild(card);
+    });
   }
 
   // ----- Gestion des chambres -----

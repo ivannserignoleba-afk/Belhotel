@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=12" />
+  <link rel="stylesheet" href="styles.css?v=13" />
 </head>
 <body class="dash-body">
   <div class="dash-shell" id="dash-shell" hidden>
@@ -35,9 +35,15 @@
       <!-- Aperçu (superadmin) -->
       <section class="dash-panel" id="panel-overview" hidden>
         <div class="stat-grid" id="stat-grid"></div>
-        <div class="admin-card">
-          <h2>Statistiques détaillées</h2>
-          <p class="hint">Le tableau de bord complet de direction (chiffre d’affaires, plats les plus vendus, activité par section) arrive en Phase 5, une fois les commandes en service.</p>
+        <div class="admin-grid overview-grid">
+          <div class="admin-card">
+            <h2>Articles les plus vendus (30 jours)</h2>
+            <div id="top-items"><p class="empty-state">Chargement...</p></div>
+          </div>
+          <div class="admin-card">
+            <h2>Activité par section (30 jours)</h2>
+            <div id="section-activity"><p class="empty-state">Chargement...</p></div>
+          </div>
         </div>
       </section>
 
@@ -157,17 +163,44 @@
 
       <!-- Personnel (superadmin) -->
       <section class="dash-panel" id="panel-staff" hidden>
-        <div class="admin-card">
-          <h2>Personnel</h2>
-          <p class="hint">La gestion des comptes du personnel (création, désactivation, rôles) arrive en Phase 5. Comptes actuels : superadmin, réception, restauration et bar.</p>
+        <div class="admin-grid">
+          <div class="admin-card">
+            <h2>Créer un compte</h2>
+            <form id="staff-form">
+              <input type="text" name="full_name" placeholder="Nom complet (ex : Jean Kouassi)" required />
+              <input type="email" name="email" placeholder="Adresse email" required />
+              <input type="text" name="password" placeholder="Mot de passe (min. 8 caractères)" minlength="8" required />
+              <select name="role" required>
+                <option value="reception">Réception</option>
+                <option value="resto">Restauration</option>
+                <option value="bar">Bar</option>
+                <option value="superadmin">Super Admin</option>
+              </select>
+              <button type="submit">Créer le compte</button>
+            </form>
+            <p class="hint">Communiquez l’email et le mot de passe à l’employé. Il pourra se connecter immédiatement.</p>
+            <p class="service-feedback" id="staff-feedback" aria-live="polite"></p>
+          </div>
+          <div class="admin-card">
+            <h2>Équipe</h2>
+            <div id="staff-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
+          </div>
         </div>
       </section>
 
       <!-- Stock -->
       <section class="dash-panel" id="panel-stock" hidden>
-        <div class="admin-card">
-          <h2>Stock</h2>
-          <p class="hint">La gestion du stock par article (quantités, alertes stock bas, indisponibilité automatique sur les menus) arrive en Phase 5.</p>
+        <div class="admin-grid overview-grid">
+          <div class="admin-card" id="stock-resto-card" hidden>
+            <h2>Stock du restaurant</h2>
+            <p class="hint">Un article à 0 disparaît automatiquement du menu des clients. « Illimité » = pas de suivi de stock.</p>
+            <div id="stock-resto-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
+          </div>
+          <div class="admin-card" id="stock-bar-card" hidden>
+            <h2>Stock du bar</h2>
+            <p class="hint">Un article à 0 disparaît automatiquement de la carte des clients. « Illimité » = pas de suivi de stock.</p>
+            <div id="stock-bar-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
+          </div>
         </div>
       </section>
     </main>
@@ -175,7 +208,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1/build/qrcode.min.js"></script>
-  <script src="supabase-client.js?v=12"></script>
-  <script src="admin.js?v=12"></script>
+  <script src="supabase-client.js?v=13"></script>
+  <script src="admin.js?v=13"></script>
 </body>
 </html>
