@@ -1,11 +1,25 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
+
+// Charge les variables de .env.local (sans dépendance externe)
+const envPath = path.join(__dirname, '.env.local');
+if (fs.existsSync(envPath)) {
+  for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+    const match = line.match(/^\s*([\w.]+)\s*=\s*(.*)\s*$/);
+    if (match && !(match[1] in process.env)) {
+      process.env[match[1]] = match[2];
+    }
+  }
+}
 
 const app = express();
 const publicPath = __dirname;
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'belhotel2026';
+const ADMIN_USERNAME = process.env.SITE_ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.SITE_ADMIN_PASSWORD || 'belhotel2026';
+// Jeton de session aléatoire, régénéré à chaque démarrage du serveur
+const SESSION_TOKEN = crypto.randomBytes(32).toString('hex');
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -23,7 +37,7 @@ function parseCookies(req) {
 
 function requireAdmin(req, res, next) {
   const cookies = parseCookies(req);
-  if (cookies.adminSession === 'authenticated') {
+  if (cookies.adminSession === SESSION_TOKEN) {
     return next();
   }
   return res.redirect('/admin/login');
@@ -73,7 +87,7 @@ app.get('/admin/login', (req, res) => {
 app.post('/admin/login', (req, res) => {
   const { username, password } = req.body;
   if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-    res.setHeader('Set-Cookie', 'adminSession=authenticated; HttpOnly; Path=/; Max-Age=86400');
+    res.setHeader('Set-Cookie', `adminSession=${SESSION_TOKEN}; HttpOnly; Path=/; Max-Age=86400`);
     return res.redirect('/admin');
   }
   return res.redirect('/admin/login?error=1');
