@@ -3,33 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Connexion admin - Belhotel</title>
+  <title>Connexion - Belhotel</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=8" />
+  <link rel="stylesheet" href="styles.css?v=9" />
 </head>
 <body>
-  <div class="login-shell">
-    <div class="login-card">
-      <a class="brand" href="index.html">BEL<span style="color:#f97316">HOTEL</span></a>
-      <h1>Connexion administration</h1>
-      <p>Accédez à la gestion du site Belhotel.</p>
-      <form class="login-form" id="login-form">
-        <input type="email" name="email" placeholder="Adresse email" autocomplete="username" required />
-        <input type="password" name="password" placeholder="Mot de passe" autocomplete="current-password" required />
-        <button type="submit" id="login-btn">Se connecter</button>
-      </form>
-      <p class="login-error" id="login-error" aria-live="polite"></p>
-      <p class="login-back"><a href="index.html">← Retour au site</a></p>
+  <div class="login-split">
+    <div class="login-visual">
+      <div class="login-visual-content">
+        <a class="brand" href="index.html">BEL<span>HOTEL</span></a>
+        <h1>Espace de gestion du complexe</h1>
+        <p>Hôtel, restaurant et bar : pilotez toute l’activité depuis un seul endroit.</p>
+      </div>
+    </div>
+
+    <div class="login-panel">
+      <div class="login-box">
+        <p class="eyebrow">Espace personnel</p>
+        <h2>Connexion</h2>
+        <p class="login-sub">Connectez-vous avec le compte fourni par votre direction.</p>
+
+        <form class="login-form" id="login-form">
+          <label class="field">
+            <span>Adresse email</span>
+            <input type="email" name="email" placeholder="vous@belhotel.com" autocomplete="username" required />
+          </label>
+          <label class="field">
+            <span>Mot de passe</span>
+            <div class="password-wrap">
+              <input type="password" name="password" id="password-input" placeholder="Votre mot de passe" autocomplete="current-password" required />
+              <button type="button" class="password-toggle" id="password-toggle" aria-label="Afficher le mot de passe">
+                <svg id="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c6.5 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3.5 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+              </button>
+            </div>
+          </label>
+          <button type="submit" id="login-btn">Se connecter</button>
+        </form>
+        <p class="login-error" id="login-error" aria-live="polite"></p>
+        <p class="login-back"><a href="index.html">← Retour au site</a></p>
+      </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=8"></script>
+  <script src="supabase-client.js?v=9"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      // Déjà connecté ? Direction l'admin.
+      // L'œil : afficher / masquer le mot de passe
+      const passwordInput = document.getElementById('password-input');
+      const toggle = document.getElementById('password-toggle');
+      const eyeOpen = document.getElementById('eye-open');
+      const eyeClosed = document.getElementById('eye-closed');
+      toggle.addEventListener('click', () => {
+        const show = passwordInput.type === 'password';
+        passwordInput.type = show ? 'text' : 'password';
+        eyeOpen.style.display = show ? 'none' : 'block';
+        eyeClosed.style.display = show ? 'block' : 'none';
+        toggle.setAttribute('aria-label', show ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+        passwordInput.focus();
+      });
+
+      // Déjà connecté ? Direction le tableau de bord.
       const { data: { session } } = await db.auth.getSession();
       if (session) {
         window.location.href = 'admin.html';
@@ -51,13 +88,28 @@
           password: form.password.value,
         });
 
-        button.disabled = false;
-        button.textContent = 'Se connecter';
-
         if (error) {
+          button.disabled = false;
+          button.textContent = 'Se connecter';
           errorEl.textContent = 'Identifiants incorrects. Vérifiez votre email et votre mot de passe.';
           return;
         }
+
+        // Vérifie que le compte fait bien partie du personnel
+        const { data: staff } = await db
+          .from('admins')
+          .select('role')
+          .eq('email', form.email.value.trim().toLowerCase())
+          .maybeSingle();
+
+        if (!staff) {
+          await db.auth.signOut();
+          button.disabled = false;
+          button.textContent = 'Se connecter';
+          errorEl.textContent = 'Ce compte n’a pas accès à l’espace de gestion.';
+          return;
+        }
+
         window.location.href = 'admin.html';
       });
     });

@@ -3,109 +3,178 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Administration Belhotel</title>
+  <title>Tableau de bord - Belhotel</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=8" />
+  <link rel="stylesheet" href="styles.css?v=9" />
 </head>
-<body class="admin-body">
-  <header class="admin-topbar">
-    <a class="brand" href="index.html">BEL<span>HOTEL</span> · Admin</a>
-    <div class="admin-user">
-      <span id="admin-email"></span>
-      <button type="button" class="logout-btn" id="logout-btn">Déconnexion</button>
-    </div>
-  </header>
-
-  <main>
-    <div class="admin-tabs">
-      <button type="button" class="admin-tab active" data-tab="rooms">Chambres</button>
-      <button type="button" class="admin-tab" data-tab="restaurant">Restaurant</button>
-      <button type="button" class="admin-tab" data-tab="bar">Bar</button>
-    </div>
-
-    <!-- Chambres -->
-    <section class="admin-panel-section" id="tab-rooms">
-      <div class="admin-grid">
-        <div class="admin-card">
-          <h2>Ajouter une chambre</h2>
-          <form id="room-form">
-            <input type="text" name="name" placeholder="Nom de la chambre (ex: 104-LA DOUCEUR)" required />
-            <textarea name="description" rows="3" placeholder="Description"></textarea>
-            <input type="number" name="price" placeholder="Prix par nuit en FCFA" min="0" required />
-            <input type="url" name="image" placeholder="URL de la photo" />
-            <select name="status">
-              <option value="available">Disponible</option>
-              <option value="unavailable">Indisponible</option>
-            </select>
-            <button type="submit">Ajouter la chambre</button>
-          </form>
+<body class="dash-body">
+  <div class="dash-shell" id="dash-shell" hidden>
+    <aside class="dash-sidebar">
+      <a class="brand" href="index.html">BEL<span>HOTEL</span></a>
+      <nav class="dash-nav" id="dash-nav"></nav>
+      <div class="dash-user">
+        <div class="dash-user-avatar" id="user-avatar"></div>
+        <div class="dash-user-info">
+          <strong id="user-name"></strong>
+          <span id="user-role"></span>
         </div>
-        <div class="admin-card">
-          <h2>Chambres enregistrées</h2>
-          <div id="room-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
-        </div>
+        <button type="button" class="dash-logout" id="logout-btn" title="Déconnexion" aria-label="Déconnexion">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        </button>
       </div>
-    </section>
+    </aside>
 
-    <!-- Restaurant -->
-    <section class="admin-panel-section" id="tab-restaurant" hidden>
-      <div class="admin-grid">
-        <div class="admin-card">
-          <h2>Ajouter un plat</h2>
-          <form id="restaurant-form">
-            <select name="category" required>
-              <option value="standard">Menu Standard</option>
-              <option value="vip">Menu VIP</option>
-              <option value="vvip">Menu VVIP</option>
-            </select>
-            <input type="text" name="name" placeholder="Nom du plat" required />
-            <textarea name="description" rows="3" placeholder="Description"></textarea>
-            <input type="number" name="price" placeholder="Prix en FCFA" min="0" required />
-            <input type="url" name="image" placeholder="URL de la photo" />
-            <button type="submit">Ajouter le plat</button>
-          </form>
-        </div>
-        <div class="admin-card">
-          <h2>Plats du restaurant</h2>
-          <div id="restaurant-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
-        </div>
-      </div>
-    </section>
+    <main class="dash-main">
+      <header class="dash-header">
+        <h1 id="section-title"></h1>
+        <p id="section-subtitle"></p>
+      </header>
 
-    <!-- Bar -->
-    <section class="admin-panel-section" id="tab-bar" hidden>
-      <div class="admin-grid">
+      <!-- Aperçu (superadmin) -->
+      <section class="dash-panel" id="panel-overview" hidden>
+        <div class="stat-grid" id="stat-grid"></div>
         <div class="admin-card">
-          <h2>Ajouter une boisson</h2>
-          <form id="bar-form">
-            <select name="category" required>
-              <option value="standard">Bar Standard</option>
-              <option value="vip">Salon VIP</option>
-              <option value="vvip">Expérience VVIP</option>
-            </select>
-            <input type="text" name="name" placeholder="Nom de la boisson" required />
-            <textarea name="description" rows="3" placeholder="Description"></textarea>
-            <input type="number" name="price" placeholder="Prix en FCFA" min="0" required />
-            <input type="url" name="image" placeholder="URL de la photo" />
-            <button type="submit">Ajouter la boisson</button>
-          </form>
+          <h2>Statistiques détaillées</h2>
+          <p class="hint">Le tableau de bord complet de direction (chiffre d’affaires, plats les plus vendus, activité par section) arrive en Phase 5, une fois les commandes en service.</p>
         </div>
-        <div class="admin-card">
-          <h2>Boissons du bar</h2>
-          <div id="bar-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
-        </div>
-      </div>
-    </section>
-  </main>
+      </section>
 
-  <footer class="footer">
-    <p>© <span id="year"></span> Belhotel After Work — Espace administration.</p>
-  </footer>
+      <!-- Commandes chambres (réception) -->
+      <section class="dash-panel" id="panel-orders-rooms" hidden>
+        <div class="admin-card">
+          <h2>Commandes des chambres</h2>
+          <p class="hint">Les commandes passées depuis les QR codes des chambres arriveront ici en temps réel, avec les photos des plats et les boutons « Envoyer à la restauration » / « Envoyer au barman ». Disponible en Phase 3.</p>
+        </div>
+      </section>
+
+      <!-- Demandes de service (réception) -->
+      <section class="dash-panel" id="panel-requests" hidden>
+        <div class="admin-card">
+          <h2>Demandes de service</h2>
+          <p class="hint">Serviettes, climatisation, ménage... Les demandes des clients scannées depuis les chambres apparaîtront ici en temps réel. Disponible en Phase 3.</p>
+        </div>
+      </section>
+
+      <!-- Commandes restauration -->
+      <section class="dash-panel" id="panel-orders-resto" hidden>
+        <div class="admin-card">
+          <h2>Commandes en cuisine</h2>
+          <p class="hint">Les commandes des tables et celles transférées par la réception arriveront ici en temps réel. Disponible en Phase 3.</p>
+        </div>
+      </section>
+
+      <!-- Commandes bar -->
+      <section class="dash-panel" id="panel-orders-bar" hidden>
+        <div class="admin-card">
+          <h2>Commandes du bar</h2>
+          <p class="hint">Les commandes des salons et celles transférées par la réception arriveront ici en temps réel. Disponible en Phase 3.</p>
+        </div>
+      </section>
+
+      <!-- Chambres -->
+      <section class="dash-panel" id="panel-rooms" hidden>
+        <div class="admin-grid">
+          <div class="admin-card">
+            <h2>Ajouter une chambre</h2>
+            <form id="room-form">
+              <input type="text" name="name" placeholder="Nom de la chambre (ex: 104-LA DOUCEUR)" required />
+              <textarea name="description" rows="3" placeholder="Description"></textarea>
+              <input type="number" name="price" placeholder="Prix par nuit en FCFA" min="0" required />
+              <input type="url" name="image" placeholder="URL de la photo" />
+              <select name="status">
+                <option value="available">Disponible</option>
+                <option value="unavailable">Indisponible</option>
+              </select>
+              <button type="submit">Ajouter la chambre</button>
+            </form>
+          </div>
+          <div class="admin-card">
+            <h2>Chambres enregistrées</h2>
+            <div id="room-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Restaurant -->
+      <section class="dash-panel" id="panel-restaurant" hidden>
+        <div class="admin-grid">
+          <div class="admin-card">
+            <h2>Ajouter un plat</h2>
+            <form id="restaurant-form">
+              <select name="category" required>
+                <option value="standard">Menu Standard</option>
+                <option value="vip">Menu VIP</option>
+                <option value="vvip">Menu VVIP</option>
+              </select>
+              <input type="text" name="name" placeholder="Nom du plat" required />
+              <textarea name="description" rows="3" placeholder="Description"></textarea>
+              <input type="number" name="price" placeholder="Prix en FCFA" min="0" required />
+              <input type="url" name="image" placeholder="URL de la photo" />
+              <button type="submit">Ajouter le plat</button>
+            </form>
+          </div>
+          <div class="admin-card">
+            <h2>Plats du restaurant</h2>
+            <div id="restaurant-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bar -->
+      <section class="dash-panel" id="panel-bar" hidden>
+        <div class="admin-grid">
+          <div class="admin-card">
+            <h2>Ajouter une boisson</h2>
+            <form id="bar-form">
+              <select name="category" required>
+                <option value="standard">Bar Standard</option>
+                <option value="vip">Salon VIP</option>
+                <option value="vvip">Expérience VVIP</option>
+              </select>
+              <input type="text" name="name" placeholder="Nom de la boisson" required />
+              <textarea name="description" rows="3" placeholder="Description"></textarea>
+              <input type="number" name="price" placeholder="Prix en FCFA" min="0" required />
+              <input type="url" name="image" placeholder="URL de la photo" />
+              <button type="submit">Ajouter la boisson</button>
+            </form>
+          </div>
+          <div class="admin-card">
+            <h2>Boissons du bar</h2>
+            <div id="bar-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- QR codes -->
+      <section class="dash-panel" id="panel-qr" hidden>
+        <div class="admin-card">
+          <h2>QR codes</h2>
+          <p class="hint">Le générateur de QR codes orange et blanc BELHOTEL (chambres, tables, salons), prêts à imprimer, arrive en Phase 4.</p>
+        </div>
+      </section>
+
+      <!-- Personnel (superadmin) -->
+      <section class="dash-panel" id="panel-staff" hidden>
+        <div class="admin-card">
+          <h2>Personnel</h2>
+          <p class="hint">La gestion des comptes du personnel (création, désactivation, rôles) arrive en Phase 5. Comptes actuels : superadmin, réception, restauration et bar.</p>
+        </div>
+      </section>
+
+      <!-- Stock -->
+      <section class="dash-panel" id="panel-stock" hidden>
+        <div class="admin-card">
+          <h2>Stock</h2>
+          <p class="hint">La gestion du stock par article (quantités, alertes stock bas, indisponibilité automatique sur les menus) arrive en Phase 5.</p>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=8"></script>
-  <script src="admin.js?v=8"></script>
+  <script src="supabase-client.js?v=9"></script>
+  <script src="admin.js?v=9"></script>
 </body>
 </html>
