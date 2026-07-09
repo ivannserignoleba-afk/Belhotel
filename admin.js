@@ -116,6 +116,302 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('dash-shell').hidden = false;
   showSection(sections[0]);
 
+  // ================= COMMANDES EN TEMPS RÉEL =================
+
+  const STATUS_LABELS = {
+    reception: 'À traiter',
+    sent: 'Envoyée',
+    preparing: 'En préparation',
+    delivered: 'Livrée',
+    cancelled: 'Annulée',
+  };
+
+  // Configuration des trois tableaux de commandes
+  const ORDER_BOARDS = {
+    'orders-rooms': {
+      board: 'board-orders-rooms',
+      context: 'reception',
+      active: ['reception'],
+      applyFilter: (query) => query.eq('origin_type', 'room'),
+      emptyText: 'Aucune commande en attente. Les commandes des chambres apparaîtront ici automatiquement.',
+    },
+    'orders-resto': {
+      board: 'board-orders-resto',
+      context: 'kitchen',
+      active: ['sent', 'preparing'],
+      applyFilter: (query) => query.eq('target', 'resto').neq('status', 'reception'),
+      emptyText: 'Aucune commande en cours. Les commandes des tables et des chambres apparaîtront ici automatiquement.',
+    },
+    'orders-bar': {
+      board: 'board-orders-bar',
+      context: 'kitchen',
+      active: ['sent', 'preparing'],
+      applyFilter: (query) => query.eq('target', 'bar').neq('status', 'reception'),
+      emptyText: 'Aucune commande en cours. Les commandes des salons et des chambres apparaîtront ici automatiquement.',
+    },
+  };
+
+  function timeAgo(dateString) {
+    const seconds = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000);
+    if (seconds < 60) return 'à l’instant';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `il y a ${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `il y a ${hours} h`;
+    return new Date(dateString).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function setNavBadge(sectionKey, count) {
+    const item = document.querySelector(`.dash-nav-item[data-section="${sectionKey}"]`);
+    if (!item) return;
+    let badge = item.querySelector('.nav-badge');
+    if (!count) {
+      badge?.remove();
+      return;
+    }
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'nav-badge';
+      item.appendChild(badge);
+    }
+    badge.textContent = count;
+  }
+
+  async function updateOrderStatus(orderId, status, boardKey) {
+    const { error } = await db.from('orders').update({ status }).eq('id', orderId);
+    if (error) alert('Erreur : ' + error.message);
+    else loadOrdersBoard(boardKey);
+  }
+
+  function renderOrderCard(order, config, withActions) {
+    const originName = (order.origin_type === 'room' ? 'Chambre ' : '') + order.origin_label.trim();
+    const card = document.createElement('article');
+    card.className = 'order-ticket' + (withActions ? '' : ' is-history');
+
+    const lines = (order.order_items || []).map((line) => `
+      <div class="ticket-line">
+        ${line.item_image ? `<img src="${line.item_image}" alt="" loading="lazy" />` : '<span class="ticket-noimg"></span>'}
+        <span class="ticket-line-name">${line.qty} × ${line.item_name}</span>
+        <span class="ticket-line-price">${formatPrice(line.unit_price * line.qty)}</span>
+      </div>
+    `).join('');
+
+    card.innerHTML = `
+      <div class="ticket-head">
+        <div>
+          <strong>${originName}</strong>
+          <span class="ticket-time">${timeAgo(order.created_at)}</span>
+        </div>
+        <span class="badge status-${order.status}">${STATUS_LABELS[order.status]}</span>
+      </div>
+      <div class="ticket-lines">${lines}</div>
+      ${order.note ? `<p class="ticket-note">Note : ${order.note}</p>` : ''}
+      <div class="ticket-total"><span>Total</span><strong>${formatPrice(order.total)}</strong></div>
+      <div class="ticket-actions"></div>
+    `;
+
+    if (withActions) {
+      const actions = card.querySelector('.ticket-actions');
+
+      const addAction = (label, status, className) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = className;
+        button.textContent = label;
+        button.addEventListener('click', () => updateOrderStatus(order.id, status, config.key));
+        actions.appendChild(button);
+      };
+
+      if (config.context === 'reception' && order.status === 'reception') {
+        addAction(order.target === 'resto' ? 'Envoyer à la restauration' : 'Envoyer au barman', 'sent', 'confirm-btn');
+        addAction('Annuler', 'cancelled', 'delete-btn');
+      }
+      if (config.context === 'kitchen') {
+        if (order.status === 'sent') {
+          addAction('Commencer la préparation', 'preparing', 'confirm-btn');
+          addAction('Annuler', 'cancelled', 'delete-btn');
+        }
+        if (order.status === 'preparing') {
+          addAction('Marquer comme livrée', 'delivered', 'confirm-btn');
+        }
+      }
+    }
+
+    return card;
+  }
+
+  async function loadOrdersBoard(key) {
+    const config = { ...ORDER_BOARDS[key], key };
+    const container = document.getElementById(config.board);
+    if (!container) return;
+
+    let query = db
+      .from('orders')
+      .select('*, order_items(*)')
+      .order('created_at', { ascending: false })
+      .limit(60);
+    query = config.applyFilter(query);
+    const { data: orders, error } = await query;
+
+    if (error) {
+      container.innerHTML = `<p class="empty-state">Erreur de chargement : ${error.message}</p>`;
+      return;
+    }
+
+    const active = orders.filter((order) => config.active.includes(order.status));
+    const history = orders.filter((order) => !config.active.includes(order.status)).slice(0, 12);
+
+    setNavBadge(key, active.length);
+
+    container.innerHTML = '';
+    if (!active.length) {
+      container.insertAdjacentHTML('beforeend', `<p class="empty-state">${config.emptyText}</p>`);
+    } else {
+      const grid = document.createElement('div');
+      grid.className = 'ticket-grid';
+      active.forEach((order) => grid.appendChild(renderOrderCard(order, config, true)));
+      container.appendChild(grid);
+    }
+
+    if (history.length) {
+      container.insertAdjacentHTML('beforeend', '<h3 class="board-subtitle">Historique récent</h3>');
+      const grid = document.createElement('div');
+      grid.className = 'ticket-grid';
+      history.forEach((order) => grid.appendChild(renderOrderCard(order, config, false)));
+      container.appendChild(grid);
+    }
+  }
+
+  // ----- Demandes de service -----
+  const REQUEST_STATUS_LABELS = { new: 'Nouvelle', in_progress: 'En cours', done: 'Traitée' };
+
+  async function loadRequestsBoard() {
+    const container = document.getElementById('board-requests');
+    if (!container) return;
+
+    const { data: requests, error } = await db
+      .from('service_requests')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(60);
+
+    if (error) {
+      container.innerHTML = `<p class="empty-state">Erreur de chargement : ${error.message}</p>`;
+      return;
+    }
+
+    const active = requests.filter((request) => request.status !== 'done');
+    const history = requests.filter((request) => request.status === 'done').slice(0, 12);
+
+    setNavBadge('requests', requests.filter((request) => request.status === 'new').length);
+
+    container.innerHTML = '';
+    if (!active.length) {
+      container.insertAdjacentHTML('beforeend', '<p class="empty-state">Aucune demande en attente. Les demandes des chambres (serviettes, climatisation...) apparaîtront ici automatiquement.</p>');
+    }
+
+    const renderRequest = (request, withActions) => {
+      const card = document.createElement('article');
+      card.className = 'order-ticket' + (withActions ? '' : ' is-history');
+      card.innerHTML = `
+        <div class="ticket-head">
+          <div>
+            <strong>Chambre ${request.origin_label.trim()}</strong>
+            <span class="ticket-time">${timeAgo(request.created_at)}</span>
+          </div>
+          <span class="badge request-${request.status}">${REQUEST_STATUS_LABELS[request.status]}</span>
+        </div>
+        <p class="ticket-request-cat">${request.category}</p>
+        ${request.message ? `<p class="ticket-note">${request.message}</p>` : ''}
+        <div class="ticket-actions"></div>
+      `;
+      if (withActions) {
+        const actions = card.querySelector('.ticket-actions');
+        const advance = async (status) => {
+          const { error: updateError } = await db.from('service_requests').update({ status }).eq('id', request.id);
+          if (updateError) alert('Erreur : ' + updateError.message);
+          else loadRequestsBoard();
+        };
+        if (request.status === 'new') {
+          const take = document.createElement('button');
+          take.type = 'button';
+          take.className = 'confirm-btn';
+          take.textContent = 'Prendre en charge';
+          take.addEventListener('click', () => advance('in_progress'));
+          actions.appendChild(take);
+        }
+        if (request.status === 'in_progress') {
+          const done = document.createElement('button');
+          done.type = 'button';
+          done.className = 'confirm-btn';
+          done.textContent = 'Marquer comme traitée';
+          done.addEventListener('click', () => advance('done'));
+          actions.appendChild(done);
+        }
+      }
+      return card;
+    };
+
+    if (active.length) {
+      const grid = document.createElement('div');
+      grid.className = 'ticket-grid';
+      active.forEach((request) => grid.appendChild(renderRequest(request, true)));
+      container.appendChild(grid);
+    }
+    if (history.length) {
+      container.insertAdjacentHTML('beforeend', '<h3 class="board-subtitle">Historique récent</h3>');
+      const grid = document.createElement('div');
+      grid.className = 'ticket-grid';
+      history.forEach((request) => grid.appendChild(renderRequest(request, false)));
+      container.appendChild(grid);
+    }
+  }
+
+  // ----- Bip sonore à l'arrivée d'une commande -----
+  function beep() {
+    try {
+      const context = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.18].forEach((delay) => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.frequency.value = 880;
+        gain.gain.setValueAtTime(0.15, context.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + delay + 0.15);
+        oscillator.start(context.currentTime + delay);
+        oscillator.stop(context.currentTime + delay + 0.16);
+      });
+    } catch (ignore) { /* audio non disponible */ }
+  }
+
+  // ----- Chargement + temps réel + filet de sécurité (30 s) -----
+  const myBoards = sections.filter((key) => ORDER_BOARDS[key]);
+  const watchRequests = sections.includes('requests');
+
+  function refreshAllBoards() {
+    myBoards.forEach((key) => loadOrdersBoard(key));
+    if (watchRequests) loadRequestsBoard();
+  }
+
+  if (myBoards.length || watchRequests) {
+    refreshAllBoards();
+
+    db.channel('staff-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+        if (payload.eventType === 'INSERT') beep();
+        myBoards.forEach((key) => loadOrdersBoard(key));
+        if (sections.includes('overview')) loadStats();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'service_requests' }, (payload) => {
+        if (payload.eventType === 'INSERT') beep();
+        if (watchRequests) loadRequestsBoard();
+      })
+      .subscribe();
+
+    setInterval(refreshAllBoards, 30000);
+  }
+
   // ----- Aperçu : compteurs (superadmin) -----
   if (sections.includes('overview')) {
     loadStats();
