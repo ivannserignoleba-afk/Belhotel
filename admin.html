@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=11" />
+  <link rel="stylesheet" href="styles.css?v=12" />
 </head>
 <body class="dash-body">
   <div class="dash-shell" id="dash-shell" hidden>
@@ -137,9 +137,21 @@
 
       <!-- QR codes -->
       <section class="dash-panel" id="panel-qr" hidden>
-        <div class="admin-card">
-          <h2>QR codes</h2>
-          <p class="hint">Le générateur de QR codes orange et blanc BELHOTEL (chambres, tables, salons), prêts à imprimer, arrive en Phase 4.</p>
+        <div class="admin-grid">
+          <div class="admin-card">
+            <h2>Créer un QR code</h2>
+            <form id="qr-form">
+              <select name="type" id="qr-type" required></select>
+              <select name="room" id="qr-room" hidden></select>
+              <input type="text" name="label" id="qr-label" placeholder="Ex : Table 3" />
+              <button type="submit">Créer le QR code</button>
+            </form>
+            <p class="hint">Le QR code renvoie le client vers la page de commande. Téléchargez la carte puis imprimez-la et placez-la dans la chambre, sur la table ou dans le salon.</p>
+          </div>
+          <div class="admin-card">
+            <h2>QR codes existants</h2>
+            <div id="qr-list" class="qr-grid"><p class="empty-state">Chargement...</p></div>
+          </div>
         </div>
       </section>
 
@@ -162,7 +174,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js?v=11"></script>
-  <script src="admin.js?v=11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1/build/qrcode.min.js"></script>
+  <script src="supabase-client.js?v=12"></script>
+  <script src="admin.js?v=12"></script>
 </body>
 </html>

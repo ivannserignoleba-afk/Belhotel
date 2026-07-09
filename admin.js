@@ -607,4 +607,212 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (sections.includes('bar')) {
     initMenu('bar_menu', 'bar-form', 'bar-list', 'boisson');
   }
+
+  // ================= GÉNÉRATEUR DE QR CODES =================
+
+  const QR_TYPES_BY_ROLE = {
+    superadmin: ['room', 'table', 'salon'],
+    reception: ['room'],
+    resto: ['table'],
+    bar: ['salon'],
+  };
+  const QR_TYPE_LABELS = { room: 'Chambre', table: 'Table', salon: 'Salon' };
+  const QR_ORANGE = '#c2410c';
+
+  if (sections.includes('qr')) {
+    initQrPanel();
+  }
+
+  function qrUrl(point) {
+    return `${window.location.origin}/commander.html?c=${point.code}`;
+  }
+
+  function qrDisplayName(point) {
+    return point.type === 'room' ? `Chambre ${point.label.trim()}` : point.label.trim();
+  }
+
+  // Carte imprimable 800x1080 : bandeau BELHOTEL, QR orange, libellé
+  async function buildQrCard(point) {
+    const qrCanvas = document.createElement('canvas');
+    await QRCode.toCanvas(qrCanvas, qrUrl(point), {
+      width: 560,
+      margin: 1,
+      errorCorrectionLevel: 'H',
+      color: { dark: QR_ORANGE, light: '#ffffff' },
+    });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 1080;
+    const context = canvas.getContext('2d');
+
+    // Fond blanc + cadre orange
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, 800, 1080);
+    context.strokeStyle = QR_ORANGE;
+    context.lineWidth = 10;
+    context.strokeRect(5, 5, 790, 1070);
+
+    // Bandeau BELHOTEL
+    context.fillStyle = QR_ORANGE;
+    context.fillRect(10, 10, 780, 150);
+    context.fillStyle = '#ffffff';
+    context.font = '800 62px Arial, sans-serif';
+    context.textAlign = 'center';
+    context.fillText('B E L H O T E L', 400, 105);
+
+    // QR code
+    context.drawImage(qrCanvas, 120, 220, 560, 560);
+
+    // Libellé + instruction
+    context.fillStyle = '#2b2018';
+    context.font = '800 46px Arial, sans-serif';
+    context.fillText(qrDisplayName(point), 400, 880);
+    context.fillStyle = '#8a7a6d';
+    context.font = '600 30px Arial, sans-serif';
+    context.fillText('Scannez pour commander', 400, 940);
+    context.fillStyle = QR_ORANGE;
+    context.font = '700 26px Arial, sans-serif';
+    context.fillText('Restaurant · Bar · Service en chambre', 400, 995);
+
+    return canvas;
+  }
+
+  async function downloadQrCard(point) {
+    const canvas = await buildQrCard(point);
+    const link = document.createElement('a');
+    link.download = `qr-belhotel-${qrDisplayName(point).replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  function initQrPanel() {
+    const allowedTypes = QR_TYPES_BY_ROLE[role] || [];
+    const typeSelect = document.getElementById('qr-type');
+    const roomSelect = document.getElementById('qr-room');
+    const labelInput = document.getElementById('qr-label');
+
+    allowedTypes.forEach((type) => {
+      const option = document.createElement('option');
+      option.value = type;
+      option.textContent = QR_TYPE_LABELS[type];
+      typeSelect.appendChild(option);
+    });
+
+    async function syncTypeFields() {
+      const isRoom = typeSelect.value === 'room';
+      roomSelect.hidden = !isRoom;
+      labelInput.hidden = isRoom;
+      labelInput.required = !isRoom;
+      if (isRoom && !roomSelect.dataset.loaded) {
+        const { data: rooms } = await db.from('rooms').select('id, name').order('name');
+        roomSelect.innerHTML = '<option value="">Choisissez la chambre...</option>';
+        (rooms || []).forEach((room) => {
+          const option = document.createElement('option');
+          option.value = room.id;
+          option.textContent = room.name.trim();
+          roomSelect.appendChild(option);
+        });
+        roomSelect.dataset.loaded = '1';
+      }
+    }
+    typeSelect.addEventListener('change', syncTypeFields);
+    syncTypeFields();
+
+    document.getElementById('qr-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const type = typeSelect.value;
+      let payload;
+
+      if (type === 'room') {
+        const roomId = roomSelect.value;
+        if (!roomId) { alert('Choisissez la chambre.'); return; }
+        const roomName = roomSelect.options[roomSelect.selectedIndex].textContent;
+        payload = { type, label: roomName, room_id: roomId };
+      } else {
+        const label = labelInput.value.trim();
+        if (!label) { alert('Indiquez le nom (ex : Table 3).'); return; }
+        payload = { type, label };
+      }
+
+      const button = event.target.querySelector('button[type="submit"]');
+      button.disabled = true;
+      const { error } = await db.from('qr_points').insert([payload]);
+      button.disabled = false;
+
+      if (error) {
+        alert('Erreur : ' + error.message);
+        return;
+      }
+      labelInput.value = '';
+      loadQrList();
+    });
+
+    loadQrList();
+  }
+
+  async function loadQrList() {
+    const container = document.getElementById('qr-list');
+    if (!container) return;
+    const allowedTypes = QR_TYPES_BY_ROLE[role] || [];
+
+    const { data: points, error } = await db
+      .from('qr_points')
+      .select('*')
+      .in('type', allowedTypes)
+      .order('type')
+      .order('label');
+
+    if (error) {
+      container.innerHTML = `<p class="empty-state">Erreur de chargement : ${error.message}</p>`;
+      return;
+    }
+    if (!points.length) {
+      container.innerHTML = '<p class="empty-state">Aucun QR code. Créez le premier avec le formulaire.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+    points.forEach((point) => {
+      const card = document.createElement('div');
+      card.className = 'qr-card' + (point.is_active ? '' : ' is-inactive');
+      card.innerHTML = `
+        <canvas class="qr-preview"></canvas>
+        <strong>${qrDisplayName(point)}</strong>
+        <span class="badge">${QR_TYPE_LABELS[point.type]}</span>
+        <div class="qr-actions">
+          <button type="button" class="confirm-btn qr-download">Télécharger</button>
+          <button type="button" class="qr-toggle">${point.is_active ? 'Désactiver' : 'Activer'}</button>
+          <button type="button" class="delete-btn qr-delete">Supprimer</button>
+        </div>
+      `;
+
+      QRCode.toCanvas(card.querySelector('.qr-preview'), qrUrl(point), {
+        width: 130,
+        margin: 1,
+        errorCorrectionLevel: 'M',
+        color: { dark: QR_ORANGE, light: '#ffffff' },
+      });
+
+      card.querySelector('.qr-download').addEventListener('click', () => downloadQrCard(point));
+
+      card.querySelector('.qr-toggle').addEventListener('click', async () => {
+        const { error: toggleError } = await db
+          .from('qr_points')
+          .update({ is_active: !point.is_active })
+          .eq('id', point.id);
+        if (toggleError) alert('Erreur : ' + toggleError.message);
+        else loadQrList();
+      });
+
+      card.querySelector('.qr-delete').addEventListener('click', async () => {
+        if (!confirm(`Supprimer le QR code « ${qrDisplayName(point)} » ? Les affiches déjà imprimées ne fonctionneront plus.`)) return;
+        const { error: deleteError } = await db.from('qr_points').delete().eq('id', point.id);
+        if (deleteError) alert('Erreur : ' + deleteError.message);
+        else loadQrList();
+      });
+
+      container.appendChild(card);
+    });
+  }
 });
