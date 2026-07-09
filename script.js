@@ -88,9 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
       timer = setInterval(() => goTo(current + 1), 6000);
     }
 
-    slider.querySelector('.hs-prev').addEventListener('click', () => { goTo(current - 1); restart(); });
-    slider.querySelector('.hs-next').addEventListener('click', () => { goTo(current + 1); restart(); });
-
     restart();
   }
 

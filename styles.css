@@ -151,26 +151,6 @@ img { max-width: 100%; display: block; }
 .hs-content h1 { font-size: clamp(2rem, 4.2vw, 3.4rem); margin: 0.4rem 0 1rem; line-height: 1.15; }
 .hs-content p { color: rgba(255,255,255,0.92); max-width: 640px; margin: 0 auto; }
 
-.hs-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 15;
-  width: 48px;
-  height: 48px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.16);
-  color: #fff;
-  font-size: 1.7rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.hs-arrow:hover { background: var(--primary); }
-.hs-prev { left: 1rem; }
-.hs-next { right: 1rem; }
-
 .hs-dots {
   position: absolute;
   bottom: 1.6rem;
@@ -265,6 +245,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
 .highlight-card h3, .feature-card h3 { margin-top: 0; }
 .feature-card a, .room-card a { color: var(--primary-dark); font-weight: 700; }
 .feature-card a:hover { text-decoration: underline; }
+.room-card a.btn-primary, .room-card a.btn-primary:hover { color: #fff; }
 
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; }
@@ -724,7 +705,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
   .split-reverse img { order: 1; }
   .split-reverse .split-body { order: 2; }
   .footer-grid { grid-template-columns: 1fr; gap: 1.4rem; }
-  .hs-arrow { display: none; }
 }
 
 @media (max-width: 800px) {
