@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     reception: 'Réception',
     resto: 'Restauration',
     bar: 'Bar',
+    serveur: 'Serveur',
   };
 
   // ----- Icônes SVG de la navigation -----
@@ -94,6 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     reception: ['orders-rooms', 'requests', 'rooms', 'qr-room'],
     resto: ['orders-resto', 'restaurant', 'stock-resto', 'qr-table'],
     bar: ['orders-bar', 'bar', 'stock-bar', 'qr-salon'],
+    serveur: ['orders-resto', 'orders-bar'],
   };
 
   const sections = ROLE_SECTIONS[role] || [];
@@ -697,11 +699,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ================= PERSONNEL (superadmin) =================
 
   const ROLE_OPTIONS = [
+    ['serveur', 'Serveur (resto + bar)'],
     ['reception', 'Réception'],
     ['resto', 'Restauration'],
     ['bar', 'Bar'],
     ['superadmin', 'Super Admin'],
   ];
+
+  // Envoie une image (ordinateur / téléphone) dans le stockage et
+  // renvoie son URL publique
+  async function uploadImage(file, folder) {
+    const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extension}`;
+    const { error } = await db.storage.from('belhotel-images').upload(path, file, { cacheControl: '3600' });
+    if (error) throw error;
+    const { data } = db.storage.from('belhotel-images').getPublicUrl(path);
+    return data.publicUrl;
+  }
 
   if (sections.includes('staff')) {
     initStaffPanel();
@@ -709,6 +723,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function initStaffPanel() {
     loadStaffList();
+
+    // Ouverture / fermeture du formulaire (comme le modèle)
+    const formCard = document.getElementById('staff-form-card');
+    document.getElementById('staff-add-toggle').addEventListener('click', () => {
+      formCard.hidden = !formCard.hidden;
+    });
+    document.getElementById('staff-form-close').addEventListener('click', () => {
+      formCard.hidden = true;
+    });
+
+    // Œil du mot de passe
+    const passwordInput = document.getElementById('staff-password');
+    const passwordToggle = document.getElementById('staff-password-toggle');
+    passwordToggle.addEventListener('click', () => {
+      const show = passwordInput.type === 'password';
+      passwordInput.type = show ? 'text' : 'password';
+      passwordToggle.querySelector('.eye-open').style.display = show ? 'none' : 'block';
+      passwordToggle.querySelector('.eye-closed').style.display = show ? 'block' : 'none';
+    });
 
     // Client auth secondaire : créer un compte sans toucher à ma session
     const signupClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -755,6 +788,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       feedback.textContent = `Compte créé : ${email} peut se connecter dès maintenant.`;
       form.reset();
+      setTimeout(() => { formCard.hidden = true; feedback.textContent = ''; }, 2200);
       loadStaffList();
     });
   }
@@ -782,6 +816,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         .join('');
       card.innerHTML = `
         <div class="admin-item-main">
+          <div class="member-avatar">${(member.full_name || member.email).trim().charAt(0).toUpperCase()}</div>
           <div>
             <strong>${member.full_name || member.email}</strong>
             <span class="badge ${member.is_active ? 'status-confirmed' : 'status-cancelled'}">${member.is_active ? 'Actif' : 'Désactivé'}</span>
@@ -895,30 +930,70 @@ document.addEventListener('DOMContentLoaded', async () => {
     initRooms();
   }
 
+  function resetItemForm(form, titleId, addTitle, addButton) {
+    form.reset();
+    form.editing_id.value = '';
+    document.getElementById(titleId).textContent = addTitle;
+    form.querySelector('button[type="submit"]').textContent = addButton;
+    form.querySelector('.form-cancel').hidden = true;
+  }
+
+  function startItemEdit(form, titleId, editTitle) {
+    document.getElementById(titleId).textContent = editTitle;
+    form.querySelector('button[type="submit"]').textContent = 'Enregistrer les modifications';
+    form.querySelector('.form-cancel').hidden = false;
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   function initRooms() {
     loadRooms();
-    document.getElementById('room-form').addEventListener('submit', async (event) => {
+    const form = document.getElementById('room-form');
+    form.querySelector('.form-cancel').addEventListener('click', () => {
+      resetItemForm(form, 'room-form-title', 'Ajouter une chambre', 'Ajouter la chambre');
+    });
+
+    form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const form = event.target;
       const button = form.querySelector('button[type="submit"]');
       button.disabled = true;
 
-      const { error } = await db.from('rooms').insert([{
-        name: form.name.value.trim(),
-        description: form.description.value.trim() || null,
-        price: Number(form.price.value),
-        image_urls: form.image.value.trim() ? [form.image.value.trim()] : null,
-        status: form.status.value,
-      }]);
+      try {
+        const payload = {
+          name: form.name.value.trim(),
+          description: form.description.value.trim() || null,
+          price: Number(form.price.value),
+          status: form.status.value,
+        };
+        const file = form.image.files[0];
+        if (file) {
+          payload.image_urls = [await uploadImage(file, 'rooms')];
+        }
 
-      button.disabled = false;
-      if (error) {
-        alert('Erreur lors de l’ajout : ' + error.message);
-        return;
+        const editingId = form.editing_id.value;
+        const { error } = editingId
+          ? await db.from('rooms').update(payload).eq('id', editingId)
+          : await db.from('rooms').insert([{ ...payload, image_urls: payload.image_urls || null }]);
+
+        if (error) throw error;
+        resetItemForm(form, 'room-form-title', 'Ajouter une chambre', 'Ajouter la chambre');
+        loadRooms();
+      } catch (error) {
+        alert('Erreur : ' + error.message);
+      } finally {
+        button.disabled = false;
       }
-      form.reset();
-      loadRooms();
     });
+  }
+
+  function startRoomEdit(room) {
+    const form = document.getElementById('room-form');
+    form.editing_id.value = room.id;
+    form.name.value = (room.name || '').trim();
+    form.description.value = room.description || '';
+    form.price.value = room.price;
+    form.status.value = room.status || 'available';
+    form.image.value = '';
+    startItemEdit(form, 'room-form-title', 'Modifier la chambre');
   }
 
   async function loadRooms() {
@@ -954,10 +1029,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
         <div class="admin-item-actions">
+          <button class="qr-toggle edit-btn" type="button">Modifier</button>
           <button class="confirm-btn" type="button">${available ? 'Rendre indisponible' : 'Rendre disponible'}</button>
           <button class="delete-btn" type="button">Supprimer</button>
         </div>
       `;
+
+      card.querySelector('.edit-btn').addEventListener('click', () => startRoomEdit(room));
 
       card.querySelector('.confirm-btn').addEventListener('click', async () => {
         const { error: updateError } = await db
@@ -1013,9 +1091,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
           </div>
           <div class="admin-item-actions">
+            <button class="qr-toggle edit-btn" type="button">Modifier</button>
             <button class="delete-btn" type="button">Supprimer</button>
           </div>
         `;
+
+        card.querySelector('.edit-btn').addEventListener('click', () => startEdit(item));
 
         card.querySelector('.delete-btn').addEventListener('click', async () => {
           if (!confirm(`Supprimer « ${item.name} » ?`)) return;
@@ -1028,27 +1109,56 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    document.getElementById(formId).addEventListener('submit', async (event) => {
+    const form = document.getElementById(formId);
+    const titleId = `${formId}-title`;
+    const addTitle = itemLabel === 'plat' ? 'Ajouter un plat' : 'Ajouter une boisson';
+    const addButton = itemLabel === 'plat' ? 'Ajouter le plat' : 'Ajouter la boisson';
+    const uploadFolder = table === 'restaurant_menu' ? 'restaurant' : 'bar';
+
+    function startEdit(item) {
+      form.editing_id.value = item.id;
+      form.category.value = item.category;
+      form.name.value = item.name;
+      form.description.value = item.description || '';
+      form.price.value = item.price;
+      form.image.value = '';
+      startItemEdit(form, titleId, itemLabel === 'plat' ? 'Modifier le plat' : 'Modifier la boisson');
+    }
+
+    form.querySelector('.form-cancel').addEventListener('click', () => {
+      resetItemForm(form, titleId, addTitle, addButton);
+    });
+
+    form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const form = event.target;
       const button = form.querySelector('button[type="submit"]');
       button.disabled = true;
 
-      const { error } = await db.from(table).insert([{
-        name: form.name.value.trim(),
-        description: form.description.value.trim() || null,
-        price: Number(form.price.value),
-        category: form.category.value,
-        image_url: form.image.value.trim() || null,
-      }]);
+      try {
+        const payload = {
+          name: form.name.value.trim(),
+          description: form.description.value.trim() || null,
+          price: Number(form.price.value),
+          category: form.category.value,
+        };
+        const file = form.image.files[0];
+        if (file) {
+          payload.image_url = await uploadImage(file, uploadFolder);
+        }
 
-      button.disabled = false;
-      if (error) {
-        alert('Erreur lors de l’ajout : ' + error.message);
-        return;
+        const editingId = form.editing_id.value;
+        const { error } = editingId
+          ? await db.from(table).update(payload).eq('id', editingId)
+          : await db.from(table).insert([{ ...payload, image_url: payload.image_url || null }]);
+
+        if (error) throw error;
+        resetItemForm(form, titleId, addTitle, addButton);
+        loadItems();
+      } catch (error) {
+        alert('Erreur : ' + error.message);
+      } finally {
+        button.disabled = false;
       }
-      form.reset();
-      loadItems();
     });
 
     loadItems();
@@ -1102,8 +1212,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const roomSelect = document.getElementById('qr-room');
     const labelInput = document.getElementById('qr-label');
     const isRoom = typeSelect.value === 'room';
-    roomSelect.hidden = !isRoom;
-    labelInput.hidden = isRoom;
+    document.getElementById('qr-room-field').hidden = !isRoom;
+    document.getElementById('qr-label-field').hidden = isRoom;
     labelInput.required = !isRoom;
     if (isRoom && !roomSelect.dataset.loaded) {
       const { data: rooms } = await db.from('rooms').select('id, name').order('name');

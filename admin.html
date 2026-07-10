@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=21" />
+  <link rel="stylesheet" href="styles.css?v=22" />
 </head>
 <body class="dash-body">
   <div class="dash-shell" id="dash-shell" hidden>
@@ -78,17 +78,26 @@
       <section class="dash-panel" id="panel-rooms" hidden>
         <div class="admin-grid">
           <div class="admin-card">
-            <h2>Ajouter une chambre</h2>
+            <h2 id="room-form-title">Ajouter une chambre</h2>
             <form id="room-form">
-              <input type="text" name="name" placeholder="Nom de la chambre (ex: 104-LA DOUCEUR)" required />
-              <textarea name="description" rows="3" placeholder="Description"></textarea>
-              <input type="number" name="price" placeholder="Prix par nuit en FCFA" min="0" required />
-              <input type="url" name="image" placeholder="URL de la photo" />
-              <select name="status">
-                <option value="available">Disponible</option>
-                <option value="unavailable">Indisponible</option>
-              </select>
-              <button type="submit">Ajouter la chambre</button>
+              <input type="hidden" name="editing_id" />
+              <label class="field"><span>Nom de la chambre</span>
+                <input type="text" name="name" placeholder="Ex : 104-LA DOUCEUR" required /></label>
+              <label class="field"><span>Description</span>
+                <textarea name="description" rows="3" placeholder="Description de la chambre..."></textarea></label>
+              <label class="field"><span>Prix par nuit (FCFA)</span>
+                <input type="number" name="price" placeholder="Ex : 20000" min="0" required /></label>
+              <label class="field"><span>Photo (depuis l’ordinateur ou le téléphone)</span>
+                <input type="file" name="image" accept="image/*" /></label>
+              <label class="field"><span>Statut</span>
+                <select name="status">
+                  <option value="available">Disponible</option>
+                  <option value="unavailable">Indisponible</option>
+                </select></label>
+              <div class="form-buttons">
+                <button type="submit">Ajouter la chambre</button>
+                <button type="button" class="qr-toggle form-cancel" hidden>Annuler</button>
+              </div>
             </form>
           </div>
           <div class="admin-card">
@@ -102,18 +111,27 @@
       <section class="dash-panel" id="panel-restaurant" hidden>
         <div class="admin-grid">
           <div class="admin-card">
-            <h2>Ajouter un plat</h2>
+            <h2 id="restaurant-form-title">Ajouter un plat</h2>
             <form id="restaurant-form">
-              <select name="category" required>
-                <option value="standard">Menu Standard</option>
-                <option value="vip">Menu VIP</option>
-                <option value="vvip">Menu VVIP</option>
-              </select>
-              <input type="text" name="name" placeholder="Nom du plat" required />
-              <textarea name="description" rows="3" placeholder="Description"></textarea>
-              <input type="number" name="price" placeholder="Prix en FCFA" min="0" required />
-              <input type="url" name="image" placeholder="URL de la photo" />
-              <button type="submit">Ajouter le plat</button>
+              <input type="hidden" name="editing_id" />
+              <label class="field"><span>Catégorie</span>
+                <select name="category" required>
+                  <option value="standard">Menu Standard</option>
+                  <option value="vip">Menu VIP</option>
+                  <option value="vvip">Menu VVIP</option>
+                </select></label>
+              <label class="field"><span>Nom du plat</span>
+                <input type="text" name="name" placeholder="Ex : Poulet braisé" required /></label>
+              <label class="field"><span>Description</span>
+                <textarea name="description" rows="3" placeholder="Description du plat..."></textarea></label>
+              <label class="field"><span>Prix (FCFA)</span>
+                <input type="number" name="price" placeholder="Ex : 5000" min="0" required /></label>
+              <label class="field"><span>Photo (depuis l’ordinateur ou le téléphone)</span>
+                <input type="file" name="image" accept="image/*" /></label>
+              <div class="form-buttons">
+                <button type="submit">Ajouter le plat</button>
+                <button type="button" class="qr-toggle form-cancel" hidden>Annuler</button>
+              </div>
             </form>
           </div>
           <div class="admin-card">
@@ -127,18 +145,27 @@
       <section class="dash-panel" id="panel-bar" hidden>
         <div class="admin-grid">
           <div class="admin-card">
-            <h2>Ajouter une boisson</h2>
+            <h2 id="bar-form-title">Ajouter une boisson</h2>
             <form id="bar-form">
-              <select name="category" required>
-                <option value="standard">Bar Standard</option>
-                <option value="vip">Salon VIP</option>
-                <option value="vvip">Expérience VVIP</option>
-              </select>
-              <input type="text" name="name" placeholder="Nom de la boisson" required />
-              <textarea name="description" rows="3" placeholder="Description"></textarea>
-              <input type="number" name="price" placeholder="Prix en FCFA" min="0" required />
-              <input type="url" name="image" placeholder="URL de la photo" />
-              <button type="submit">Ajouter la boisson</button>
+              <input type="hidden" name="editing_id" />
+              <label class="field"><span>Catégorie</span>
+                <select name="category" required>
+                  <option value="standard">Bar Standard</option>
+                  <option value="vip">Salon VIP</option>
+                  <option value="vvip">Expérience VVIP</option>
+                </select></label>
+              <label class="field"><span>Nom de la boisson</span>
+                <input type="text" name="name" placeholder="Ex : Cocktail maison" required /></label>
+              <label class="field"><span>Description</span>
+                <textarea name="description" rows="3" placeholder="Description de la boisson..."></textarea></label>
+              <label class="field"><span>Prix (FCFA)</span>
+                <input type="number" name="price" placeholder="Ex : 3500" min="0" required /></label>
+              <label class="field"><span>Photo (depuis l’ordinateur ou le téléphone)</span>
+                <input type="file" name="image" accept="image/*" /></label>
+              <div class="form-buttons">
+                <button type="submit">Ajouter la boisson</button>
+                <button type="button" class="qr-toggle form-cancel" hidden>Annuler</button>
+              </div>
             </form>
           </div>
           <div class="admin-card">
@@ -155,9 +182,12 @@
           <div class="admin-card">
             <h2>Créer un QR code</h2>
             <form id="qr-form">
-              <select name="type" id="qr-type" required></select>
-              <select name="room" id="qr-room" hidden></select>
-              <input type="text" name="label" id="qr-label" placeholder="Ex : Table 3" />
+              <label class="field"><span>Type</span>
+                <select name="type" id="qr-type" required></select></label>
+              <label class="field" id="qr-room-field"><span>Chambre</span>
+                <select name="room" id="qr-room"></select></label>
+              <label class="field" id="qr-label-field" hidden><span>Libellé</span>
+                <input type="text" name="label" id="qr-label" placeholder="Ex : Table 3" /></label>
               <button type="submit">Créer le QR code</button>
             </form>
             <p class="hint">Le QR code renvoie le client vers la page de commande. Téléchargez la carte puis imprimez-la et placez-la dans la chambre.</p>
@@ -191,29 +221,43 @@
 
       <!-- Personnel (superadmin) -->
       <section class="dash-panel" id="panel-staff" hidden>
-        <div class="admin-grid">
-          <div class="admin-card">
-            <h2>Créer un compte</h2>
-            <form id="staff-form">
-              <input type="text" name="full_name" placeholder="Nom complet (ex : Jean Kouassi)" required />
-              <input type="email" name="email" placeholder="Adresse email" required />
-              <input type="text" name="password" placeholder="Mot de passe (min. 8 caractères)" minlength="8" required />
+        <div class="panel-actions">
+          <button type="button" class="btn btn-primary" id="staff-add-toggle">+ Ajouter</button>
+        </div>
+
+        <div class="admin-card form-card" id="staff-form-card" hidden>
+          <div class="form-card-head">
+            <h2>Nouveau membre</h2>
+            <button type="button" class="modal-close form-close" id="staff-form-close" aria-label="Fermer">×</button>
+          </div>
+          <form id="staff-form">
+            <label class="field"><span>Nom</span>
+              <input type="text" name="full_name" placeholder="Ex : Awa Koné" required /></label>
+            <label class="field"><span>Email</span>
+              <input type="email" name="email" placeholder="awa@belhotel.com" required /></label>
+            <label class="field"><span>Mot de passe</span>
+              <div class="password-wrap">
+                <input type="password" name="password" id="staff-password" placeholder="Min. 8 caractères" minlength="8" required />
+                <button type="button" class="password-toggle" id="staff-password-toggle" aria-label="Afficher le mot de passe">
+                  <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c6.5 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3.5 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+                </button>
+              </div></label>
+            <label class="field"><span>Rôle</span>
               <select name="role" required>
+                <option value="serveur">Serveur (restaurant + bar)</option>
                 <option value="reception">Réception</option>
                 <option value="resto">Restauration</option>
                 <option value="bar">Bar</option>
                 <option value="superadmin">Super Admin</option>
-              </select>
-              <button type="submit">Créer le compte</button>
-            </form>
-            <p class="hint">Communiquez l’email et le mot de passe à l’employé. Il pourra se connecter immédiatement.</p>
-            <p class="service-feedback" id="staff-feedback" aria-live="polite"></p>
-          </div>
-          <div class="admin-card">
-            <h2>Équipe</h2>
-            <div id="staff-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
-          </div>
+              </select></label>
+            <button type="submit">Créer le compte</button>
+          </form>
+          <p class="hint">Communiquez l’email et le mot de passe à l’employé. Il pourra se connecter immédiatement.</p>
+          <p class="service-feedback" id="staff-feedback" aria-live="polite"></p>
         </div>
+
+        <div id="staff-list" class="admin-list staff-list"><p class="empty-state">Chargement...</p></div>
       </section>
 
       <!-- Stock -->
@@ -238,7 +282,8 @@
           <h2>Numéro WhatsApp de la réception</h2>
           <p class="hint">C’est le numéro qu’ouvrent les boutons « Réserver » et « Discuter sur WhatsApp » du site. Format international sans + ni espaces (ex : 2250757432898). La modification est immédiate.</p>
           <form id="settings-form">
-            <input type="text" id="setting-whatsapp" inputmode="numeric" placeholder="2250757432898" required />
+            <label class="field"><span>Numéro WhatsApp</span>
+              <input type="text" id="setting-whatsapp" inputmode="numeric" placeholder="2250757432898" required /></label>
             <button type="submit">Enregistrer</button>
           </form>
           <p class="service-feedback" id="settings-feedback" aria-live="polite"></p>
@@ -249,7 +294,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1/build/qrcode.min.js"></script>
-  <script src="supabase-client.js?v=21"></script>
-  <script src="admin.js?v=21"></script>
+  <script src="supabase-client.js?v=22"></script>
+  <script src="admin.js?v=22"></script>
 </body>
 </html>
