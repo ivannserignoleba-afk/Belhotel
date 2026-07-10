@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const year = document.getElementById('year');
   if (year) {
     year.textContent = new Date().getFullYear();
@@ -37,12 +37,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // ----- Diaporama (accueil, chambres...) -----
   initSlider();
 
+  // ----- Numéro WhatsApp : réglable depuis le panel admin (Réglages) -----
+  let waNumber = typeof WHATSAPP_NUMBER !== 'undefined' ? WHATSAPP_NUMBER : '';
+  if (typeof db !== 'undefined') {
+    try { waNumber = await getSetting('whatsapp_number', waNumber); } catch (ignore) { /* fallback */ }
+  }
+
   // ----- Boutons WhatsApp génériques (héros, bandeau, footer) -----
   const genericMessage = 'Bonjour, je vous contacte depuis le site du Belhotel After Work. Je souhaite des informations.';
   ['hero-whatsapp', 'cta-whatsapp', 'footer-whatsapp'].forEach((id) => {
     const link = document.getElementById(id);
     if (link) {
-      link.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(genericMessage)}`;
+      link.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(genericMessage)}`;
       link.target = '_blank';
       link.rel = 'noopener';
     }
@@ -96,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function whatsappReserveUrl(room) {
     const name = (room.name || '').trim();
     const message = `Bonjour, je souhaite réserver la chambre « ${name} » (${formatPrice(room.price)}/nuit). Merci de me confirmer la disponibilité.`;
-    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    return `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
   }
 
   // Carte de chambre commune (accueil + page Chambres).

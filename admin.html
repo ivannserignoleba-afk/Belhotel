@@ -7,26 +7,27 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=16" />
+  <link rel="stylesheet" href="styles.css?v=17" />
 </head>
 <body class="dash-body">
   <div class="dash-shell" id="dash-shell" hidden>
-    <aside class="dash-sidebar">
-      <a class="brand" href="index.html">BEL<span>HOTEL</span></a>
-      <nav class="dash-nav" id="dash-nav"></nav>
-      <div class="dash-user">
+    <header class="dash-topnav">
+      <div class="dash-id">
         <div class="dash-user-avatar" id="user-avatar"></div>
         <div class="dash-user-info">
           <strong id="user-name"></strong>
           <span id="user-role"></span>
         </div>
-        <button type="button" class="dash-logout" id="logout-btn" title="Déconnexion" aria-label="Déconnexion">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-        </button>
       </div>
-    </aside>
+      <nav class="dash-nav" id="dash-nav"></nav>
+      <button type="button" class="dash-logout" id="logout-btn" title="Déconnexion">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        <span>Déconnexion</span>
+      </button>
+    </header>
 
     <main class="dash-main">
+      <div class="chip-row dash-subnav" id="dash-subnav"></div>
       <header class="dash-header">
         <h1 id="section-title"></h1>
         <p id="section-subtitle"></p>
@@ -209,12 +210,25 @@
           </div>
         </div>
       </section>
+
+      <!-- Réglages (superadmin) -->
+      <section class="dash-panel" id="panel-settings" hidden>
+        <div class="admin-card settings-card">
+          <h2>Numéro WhatsApp de la réception</h2>
+          <p class="hint">C’est le numéro qu’ouvrent les boutons « Réserver » et « Discuter sur WhatsApp » du site. Format international sans + ni espaces (ex : 2250757432898). La modification est immédiate.</p>
+          <form id="settings-form">
+            <input type="text" id="setting-whatsapp" inputmode="numeric" placeholder="2250757432898" required />
+            <button type="submit">Enregistrer</button>
+          </form>
+          <p class="service-feedback" id="settings-feedback" aria-live="polite"></p>
+        </div>
+      </section>
     </main>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1/build/qrcode.min.js"></script>
-  <script src="supabase-client.js?v=16"></script>
-  <script src="admin.js?v=16"></script>
+  <script src="supabase-client.js?v=17"></script>
+  <script src="admin.js?v=17"></script>
 </body>
 </html>

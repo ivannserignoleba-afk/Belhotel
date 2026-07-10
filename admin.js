@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     wine: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/></svg>',
     qr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/></svg>',
     users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
     box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/></svg>',
   };
 
@@ -58,9 +59,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     'qr-salon': { title: 'QR codes des salons', subtitle: 'Créez et imprimez les QR codes des salons', icon: 'qr', panel: 'qr', qrType: 'salon' },
   };
 
+  SECTIONS.settings = { title: 'Réglages', subtitle: 'Paramètres du site et des réservations', icon: 'settings', panel: 'settings' };
+
   const NAV_LABELS = {
-    overview: 'Aperçu',
-    staff: 'Personnel',
+    overview: 'Statistiques',
+    staff: 'Équipe',
+    settings: 'Réglages',
     'orders-rooms': 'Commandes',
     requests: 'Demandes de service',
     rooms: 'Chambres',
@@ -75,15 +79,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     'qr-salon': 'QR codes',
   };
 
-  const NAV_GROUPS = [
-    { title: 'Direction', items: ['overview', 'staff'] },
-    { title: 'Hôtel', items: ['orders-rooms', 'requests', 'rooms', 'qr-room'] },
-    { title: 'Restauration', items: ['orders-resto', 'restaurant', 'stock-resto', 'qr-table'] },
-    { title: 'Bar', items: ['orders-bar', 'bar', 'stock-bar', 'qr-salon'] },
+  // Sections du haut (comme le modèle) et leurs compartiments
+  const TOP_SECTIONS = [
+    { key: 'stats', label: 'Stats', icon: 'overview', items: ['overview'] },
+    { key: 'hotel', label: 'Hôtel', icon: 'bed', items: ['orders-rooms', 'requests', 'rooms', 'qr-room'] },
+    { key: 'restaurant', label: 'Restaurant', icon: 'utensils', items: ['orders-resto', 'restaurant', 'stock-resto', 'qr-table'] },
+    { key: 'bar', label: 'Bar', icon: 'wine', items: ['orders-bar', 'bar', 'stock-bar', 'qr-salon'] },
+    { key: 'equipe', label: 'Équipe', icon: 'users', items: ['staff'] },
+    { key: 'reglages', label: 'Réglages', icon: 'settings', items: ['settings'] },
   ];
 
   const ROLE_SECTIONS = {
-    superadmin: ['overview', 'staff', 'orders-rooms', 'requests', 'rooms', 'qr-room', 'orders-resto', 'restaurant', 'stock-resto', 'qr-table', 'orders-bar', 'bar', 'stock-bar', 'qr-salon'],
+    superadmin: ['overview', 'staff', 'settings', 'orders-rooms', 'requests', 'rooms', 'qr-room', 'orders-resto', 'restaurant', 'stock-resto', 'qr-table', 'orders-bar', 'bar', 'stock-bar', 'qr-salon'],
     reception: ['orders-rooms', 'requests', 'rooms', 'qr-room'],
     resto: ['orders-resto', 'restaurant', 'stock-resto', 'qr-table'],
     bar: ['orders-bar', 'bar', 'stock-bar', 'qr-salon'],
@@ -91,34 +98,53 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const sections = ROLE_SECTIONS[role] || [];
 
-  // ----- Barre latérale groupée par pôle -----
+  const myTopSections = TOP_SECTIONS
+    .map((top) => ({ ...top, items: top.items.filter((key) => sections.includes(key)) }))
+    .filter((top) => top.items.length);
+
+  // ----- Navigation horizontale du haut -----
   const nav = document.getElementById('dash-nav');
-  let firstKey = null;
-  NAV_GROUPS.forEach((group) => {
-    const items = group.items.filter((key) => sections.includes(key));
-    if (!items.length) return;
+  const subnav = document.getElementById('dash-subnav');
+  const badgeCounts = {};
+  let currentTop = null;
 
-    const label = document.createElement('div');
-    label.className = 'dash-nav-group';
-    label.textContent = group.title;
-    nav.appendChild(label);
-
-    items.forEach((key) => {
-      if (!firstKey) firstKey = key;
-      const item = document.createElement('button');
-      item.type = 'button';
-      item.className = 'dash-nav-item';
-      item.dataset.section = key;
-      item.innerHTML = `${ICONS[SECTIONS[key].icon]}<span>${NAV_LABELS[key]}</span>`;
-      item.addEventListener('click', () => showSection(key));
-      nav.appendChild(item);
-    });
+  myTopSections.forEach((top) => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'topnav-pill';
+    pill.dataset.top = top.key;
+    pill.innerHTML = `${ICONS[top.icon]}<span>${top.label}</span>`;
+    pill.addEventListener('click', () => showTopSection(top.key));
+    nav.appendChild(pill);
   });
+
+  function showTopSection(topKey) {
+    currentTop = myTopSections.find((top) => top.key === topKey);
+    document.querySelectorAll('.topnav-pill').forEach((pill) => {
+      pill.classList.toggle('active', pill.dataset.top === topKey);
+    });
+
+    // Compartiments de la section
+    subnav.innerHTML = '';
+    subnav.hidden = currentTop.items.length < 2;
+    currentTop.items.forEach((key) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip subnav-chip';
+      chip.dataset.section = key;
+      chip.innerHTML = `<span>${NAV_LABELS[key]}</span>`;
+      chip.addEventListener('click', () => showSection(key));
+      subnav.appendChild(chip);
+    });
+
+    refreshBadges();
+    showSection(currentTop.items[0]);
+  }
 
   function showSection(key) {
     const meta = SECTIONS[key];
-    document.querySelectorAll('.dash-nav-item').forEach((item) => {
-      item.classList.toggle('active', item.dataset.section === key);
+    document.querySelectorAll('.subnav-chip').forEach((chip) => {
+      chip.classList.toggle('active', chip.dataset.section === key);
     });
     document.querySelectorAll('.dash-panel').forEach((panel) => {
       panel.hidden = panel.id !== `panel-${meta.panel}`;
@@ -131,6 +157,32 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('stock-resto-card').hidden = meta.stockTarget !== 'resto';
       document.getElementById('stock-bar-card').hidden = meta.stockTarget !== 'bar';
     }
+  }
+
+  // ----- Badges (compteurs) sur les sections et compartiments -----
+  function applyBadge(element, count) {
+    if (!element) return;
+    let badge = element.querySelector('.nav-badge');
+    if (!count) {
+      badge?.remove();
+      return;
+    }
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'nav-badge';
+      element.appendChild(badge);
+    }
+    badge.textContent = count;
+  }
+
+  function refreshBadges() {
+    myTopSections.forEach((top) => {
+      const total = top.items.reduce((sum, key) => sum + (badgeCounts[key] || 0), 0);
+      applyBadge(document.querySelector(`.topnav-pill[data-top="${top.key}"]`), total);
+    });
+    document.querySelectorAll('.subnav-chip').forEach((chip) => {
+      applyBadge(chip, badgeCounts[chip.dataset.section] || 0);
+    });
   }
 
   // ----- Infos utilisateur -----
@@ -146,7 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Affiche le shell une fois le rôle connu (évite le flash)
   document.getElementById('dash-shell').hidden = false;
-  showSection(firstKey);
+  showTopSection(myTopSections[0].key);
 
   // ================= COMMANDES EN TEMPS RÉEL =================
 
@@ -197,19 +249,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function setNavBadge(sectionKey, count) {
-    const item = document.querySelector(`.dash-nav-item[data-section="${sectionKey}"]`);
-    if (!item) return;
-    let badge = item.querySelector('.nav-badge');
-    if (!count) {
-      badge?.remove();
-      return;
-    }
-    if (!badge) {
-      badge = document.createElement('span');
-      badge.className = 'nav-badge';
-      item.appendChild(badge);
-    }
-    badge.textContent = count;
+    badgeCounts[sectionKey] = count;
+    refreshBadges();
   }
 
   async function updateOrderStatus(orderId, status, boardKey) {
@@ -1225,6 +1266,45 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
 
       container.appendChild(card);
+    });
+  }
+
+  // ================= RÉGLAGES (superadmin) =================
+
+  if (sections.includes('settings')) {
+    initSettingsPanel();
+  }
+
+  async function initSettingsPanel() {
+    const input = document.getElementById('setting-whatsapp');
+    const { data } = await db.from('app_settings').select('value').eq('key', 'whatsapp_number').maybeSingle();
+    input.value = (data && data.value) || WHATSAPP_NUMBER;
+
+    document.getElementById('settings-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const feedback = document.getElementById('settings-feedback');
+      feedback.classList.remove('error');
+      feedback.textContent = '';
+
+      const value = input.value.replace(/\D/g, '');
+      if (value.length < 8 || value.length > 15) {
+        feedback.textContent = 'Numéro invalide : indiquez 8 à 15 chiffres, avec l’indicatif pays.';
+        feedback.classList.add('error');
+        return;
+      }
+
+      const button = event.target.querySelector('button[type="submit"]');
+      button.disabled = true;
+      const { error } = await db.from('app_settings').upsert([{ key: 'whatsapp_number', value }]);
+      button.disabled = false;
+
+      if (error) {
+        feedback.textContent = 'Erreur : ' + error.message;
+        feedback.classList.add('error');
+        return;
+      }
+      input.value = value;
+      feedback.textContent = 'Numéro enregistré ! Les boutons WhatsApp du site utilisent ce numéro dès maintenant.';
     });
   }
 });

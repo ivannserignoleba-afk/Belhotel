@@ -16,7 +16,17 @@ const CATEGORY_LABELS = {
   vvip: 'VVIP',
 };
 
-// Numéro WhatsApp de la réception (format international sans + ni espaces).
-// ATTENTION : numéro de test pour le moment — à remplacer par le numéro officiel.
+// Numéro WhatsApp de secours (le vrai numéro est réglable depuis
+// le panel admin, section Réglages, et lu via getSetting).
 const WHATSAPP_NUMBER = '2250757432898';
+
+let SETTINGS_CACHE = null;
+async function getSetting(key, fallback) {
+  if (!SETTINGS_CACHE) {
+    const { data } = await db.from('app_settings').select('key, value');
+    SETTINGS_CACHE = {};
+    (data || []).forEach((row) => { SETTINGS_CACHE[row.key] = row.value; });
+  }
+  return SETTINGS_CACHE[key] || fallback;
+}
 
