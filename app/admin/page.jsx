@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '../../lib/supabase';
-import { ROLE_LABELS, beep } from '../../lib/adminShared';
-import { warnLowStock } from '../../lib/alerts';
+import { ROLE_LABELS, beep, initSound, notify, flashTitle } from '../../lib/adminShared';
+import { toastSuccess, warnLowStock } from '../../lib/alerts';
 import OrdersBoard from '../../components/admin/OrdersBoard';
 import RequestsBoard from '../../components/admin/RequestsBoard';
 import RoomsPanel from '../../components/admin/RoomsPanel';
@@ -140,6 +140,7 @@ export default function AdminPage() {
   const [section, setSection] = useState(null);
   const [badges, setBadges] = useState({});
   const [refreshTick, setRefreshTick] = useState(0);
+  const [alertsOn, setAlertsOn] = useState(false);
 
   const setBadge = useCallback((key, count) => {
     setBadges((current) => (current[key] === count ? current : { ...current, [key]: count }));
@@ -179,6 +180,31 @@ export default function AdminPage() {
     if (staff && !section && myTopSections.length) setSection(myTopSections[0].items[0]);
   }, [staff, section, myTopSections]);
 
+  // Le son est déverrouillé au premier geste (exigence des navigateurs)
+  useEffect(() => {
+    const unlock = () => initSound();
+    window.addEventListener('pointerdown', unlock, { once: true });
+    window.addEventListener('keydown', unlock, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, []);
+
+  async function enableAlerts() {
+    initSound();
+    beep(1);
+    try {
+      if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
+        await Notification.requestPermission();
+      }
+    } catch (ignore) {
+      /* notifications non disponibles */
+    }
+    setAlertsOn(true);
+    toastSuccess('Alertes sonores activées');
+  }
+
   // Temps réel : les nouveaux évènements rafraîchissent les tableaux
   const channelRef = useRef(null);
   useEffect(() => {
@@ -186,11 +212,20 @@ export default function AdminPage() {
     const channel = db
       .channel('staff-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-        if (payload.eventType === 'INSERT') beep();
+        if (payload.eventType === 'INSERT') {
+          beep(3);
+          const origin = (payload.new.origin_type === 'room' ? 'Chambre ' : '') + (payload.new.origin_label || '');
+          notify('Nouvelle commande — Belhotel', `${origin} · ${(payload.new.total || 0).toLocaleString('fr-FR')} FCFA`);
+          flashTitle('(1) Nouvelle commande — Belhotel');
+        }
         setRefreshTick((tick) => tick + 1);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'service_requests' }, (payload) => {
-        if (payload.eventType === 'INSERT') beep();
+        if (payload.eventType === 'INSERT') {
+          beep(3);
+          notify('Nouvelle demande de service — Belhotel', `Chambre ${payload.new.origin_label || ''} · ${payload.new.category || ''}`);
+          flashTitle('(1) Nouvelle demande — Belhotel');
+        }
         setRefreshTick((tick) => tick + 1);
       })
       .subscribe();
@@ -280,8 +315,21 @@ export default function AdminPage() {
 
         <button
           type="button"
+          onClick={enableAlerts}
+          title={alertsOn ? 'Alertes sonores activées' : 'Activer le son et les notifications'}
+          className={`ml-auto grid h-10 w-10 place-items-center rounded-full transition md:ml-0 ${
+            alertsOn ? 'bg-brand-pale text-brand-deep' : 'bg-brand-soft text-brand-muted hover:text-brand-deep'
+          }`}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+          </svg>
+        </button>
+        <button
+          type="button"
           onClick={logout}
-          className="ml-auto inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-[0.88rem] font-semibold text-brand-muted hover:bg-brand-soft hover:text-brand-deep md:ml-0"
+          className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-[0.88rem] font-semibold text-brand-muted hover:bg-brand-soft hover:text-brand-deep"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -331,10 +379,9 @@ export default function AdminPage() {
           <OrdersBoard boardKey={section} refreshTick={refreshTick} setBadge={setBadge} />
         ) : null}
         {section === 'requests' ? <RequestsBoard refreshTick={refreshTick} setBadge={setBadge} /> : null}
-        {section === 'rooms' ? <RoomsPanel readOnly={staff.role === 'superadmin'} /> : null}
+        {section === 'rooms' ? <RoomsPanel /> : null}
         {section === 'restaurant' ? (
           <MenuPanel
-            readOnly={staff.role === 'superadmin'}
             table="restaurant_menu"
             itemLabel="plat"
             listTitle="Plats du restaurant"
@@ -347,7 +394,6 @@ export default function AdminPage() {
         ) : null}
         {section === 'bar' ? (
           <MenuPanel
-            readOnly={staff.role === 'superadmin'}
             table="bar_menu"
             itemLabel="boisson"
             listTitle="Boissons du bar"
@@ -358,9 +404,9 @@ export default function AdminPage() {
             ]}
           />
         ) : null}
-        {section === 'qr-room' ? <QrPanel scope="room" readOnly={staff.role === 'superadmin'} /> : null}
-        {section === 'qr-table' ? <QrPanel scope="table" readOnly={staff.role === 'superadmin'} /> : null}
-        {section === 'qr-salon' ? <QrPanel scope="salon" readOnly={staff.role === 'superadmin'} /> : null}
+        {section === 'qr-room' ? <QrPanel scope="room" /> : null}
+        {section === 'qr-table' ? <QrPanel scope="table" /> : null}
+        {section === 'qr-salon' ? <QrPanel scope="salon" /> : null}
       </main>
     </div>
   );

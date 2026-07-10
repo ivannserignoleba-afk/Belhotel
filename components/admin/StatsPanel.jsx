@@ -140,14 +140,57 @@ export default function StatsPanel({ refreshTick }) {
     },
   ];
 
+  function exportCsv() {
+    const STATUS_FR = {
+      reception: 'À traiter',
+      sent: 'Envoyée',
+      preparing: 'En préparation',
+      delivered: 'Livrée',
+      cancelled: 'Annulée',
+    };
+    const rows = [['Date', 'Heure', 'Origine', 'Section', 'Statut', 'Total (FCFA)', 'Articles']];
+    (data?.orders || []).forEach((order) => {
+      const date = new Date(order.created_at);
+      rows.push([
+        date.toLocaleDateString('fr-FR'),
+        date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+        (order.origin_type === 'room' ? 'Chambre ' : '') + order.origin_label.trim(),
+        order.target === 'resto' ? 'Restaurant' : 'Bar',
+        STATUS_FR[order.status] || order.status,
+        order.total || 0,
+        (order.order_items || []).map((line) => `${line.qty}x ${line.item_name}`).join(' + '),
+      ]);
+    });
+    const csv = rows.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `commandes-belhotel-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
   return (
     <div>
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+      <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-1">
         {PERIODS.map(([value, label]) => (
           <Chip key={value} active={period === value} onClick={() => setPeriod(value)}>
             {label}
           </Chip>
         ))}
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={!data || !data.orders.length}
+          className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-full border border-brand-line bg-white px-4 py-2 text-[0.82rem] font-semibold text-brand-ink transition hover:border-brand-dark hover:text-brand-deep disabled:opacity-50"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" x2="12" y1="15" y2="3" />
+          </svg>
+          Exporter CSV
+        </button>
       </div>
 
       {data === null ? (

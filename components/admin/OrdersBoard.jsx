@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { db, formatPrice } from '../../lib/supabase';
-import { STATUS_LABELS, STATUS_BADGE, timeAgo, beep } from '../../lib/adminShared';
+import { STATUS_LABELS, STATUS_BADGE, timeAgo, beep, printOrderTicket } from '../../lib/adminShared';
 import { Badge, Chip, EmptyState, GhostBtn } from './ui';
 import { confirmAction, showError } from '../../lib/alerts';
 
@@ -192,6 +192,9 @@ export default function OrdersBoard({ boardKey, refreshTick, setBadge }) {
                 <div className="flex items-baseline justify-between border-t border-brand-line pt-2.5 font-bold">
                   <span>Total</span>
                   <strong className="text-brand-deep">{formatPrice(order.total)}</strong>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <GhostBtn onClick={() => printOrderTicket(order)}>Imprimer</GhostBtn>
                 </div>
                 {withActions ? (
                   <div className="flex flex-wrap gap-2">

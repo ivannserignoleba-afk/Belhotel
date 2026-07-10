@@ -1,0 +1,41 @@
+# Sauvegarde quotidienne de la base Supabase.
+# Chaque nuit, toutes les tables sont exportées en JSON et conservées
+# 90 jours dans les artefacts GitHub (onglet Actions → run → Artifacts).
+# Nécessite le secret SUPABASE_SERVICE_KEY (Settings → Secrets → Actions).
+name: Sauvegarde Supabase
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # tous les jours à 03h00 UTC
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Export des tables
+        env:
+          SUPABASE_URL: https://kywrazusfmumigbjktaz.supabase.co
+          SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          if [ -z "$SERVICE_KEY" ]; then
+            echo "::error::Le secret SUPABASE_SERVICE_KEY n'est pas configuré."
+            exit 1
+          fi
+          mkdir -p backup
+          for table in rooms restaurant_menu bar_menu qr_points admins app_settings orders order_items service_requests audit_log; do
+            echo "Export de $table..."
+            curl -sf "$SUPABASE_URL/rest/v1/$table?select=*" \
+              -H "apikey: $SERVICE_KEY" \
+              -H "Authorization: Bearer $SERVICE_KEY" \
+              -o "backup/$table.json"
+            echo "  -> $(wc -c < backup/$table.json) octets"
+          done
+          echo "Sauvegarde du $(date -u +%F) terminée."
+
+      - name: Conservation (90 jours)
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-supabase-${{ github.run_id }}
+          path: backup/
+          retention-days: 90
