@@ -11,7 +11,7 @@ function QrPreview({ point, width = 170 }) {
   useEffect(() => {
     if (ref.current) qrToCanvas(ref.current, point, width);
   }, [point, width]);
-  return <canvas ref={ref} className="rounded-2xl bg-white p-3" />;
+  return <canvas ref={ref} className="h-auto w-full max-w-[170px] rounded-2xl bg-white p-3" />;
 }
 
 function pointNumber(point) {

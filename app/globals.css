@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 @layer base {
+  html,
+  body {
+    /* Aucun défilement horizontal sur toute la plateforme (mobile) */
+    overflow-x: hidden;
+    max-width: 100%;
+  }
   [hidden] {
     display: none !important;
   }
@@ -10,5 +16,16 @@
   h2,
   h3 {
     @apply font-heading;
+  }
+  /* Les mots très longs (emails, URLs) ne débordent jamais */
+  p,
+  span,
+  strong,
+  a,
+  h1,
+  h2,
+  h3,
+  h4 {
+    overflow-wrap: anywhere;
   }
 }
