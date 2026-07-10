@@ -50,7 +50,7 @@ export function PrimaryBtn({ children, ...props }) {
     <button
       type="button"
       {...props}
-      className="rounded-lg bg-brand-dark px-5 py-2.5 text-[0.78rem] font-bold uppercase tracking-wider text-white hover:bg-brand-deep disabled:opacity-60"
+      className="rounded-lg bg-brand-dark px-5 py-2.5 text-[0.78rem] font-bold uppercase tracking-wider text-white shadow-md shadow-brand-dark/25 transition hover:bg-brand-deep active:scale-95 disabled:opacity-60"
     >
       {children}
     </button>
@@ -67,7 +67,7 @@ export function GhostBtn({ children, danger = false, green = false, ...props }) 
     <button
       type="button"
       {...props}
-      className={`rounded-lg border px-3.5 py-2 text-[0.74rem] font-bold uppercase tracking-wide ${tone} disabled:opacity-60`}
+      className={`rounded-lg border px-3.5 py-2 text-[0.74rem] font-bold uppercase tracking-wide transition active:scale-95 ${tone} disabled:opacity-60`}
     >
       {children}
     </button>
@@ -84,7 +84,9 @@ export function Badge({ tone = 'bg-brand-pale text-brand-deep', children }) {
 
 export function Card({ children, className = '' }) {
   return (
-    <div className={`rounded-2xl border border-brand-line bg-white p-5 shadow-[0_10px_30px_rgba(194,65,12,0.06)] ${className}`}>
+    <div
+      className={`rounded-2xl border border-brand-line bg-white p-5 shadow-[0_10px_30px_rgba(194,65,12,0.06)] transition hover:shadow-[0_14px_38px_rgba(194,65,12,0.1)] ${className}`}
+    >
       {children}
     </div>
   );

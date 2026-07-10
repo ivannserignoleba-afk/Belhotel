@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { db, formatPrice, CATEGORY_LABELS } from '../../lib/supabase';
 import { uploadImage } from '../../lib/adminShared';
+import { confirmDelete, showError, toastSuccess } from '../../lib/alerts';
 import { Badge, Card, EmptyState, Field, GhostBtn, Modal, PrimaryBtn, inputCls, submitCls } from './ui';
 
 export default function MenuPanel({ table, itemLabel, categoryOptions, listTitle }) {
@@ -62,19 +63,24 @@ export default function MenuPanel({ table, itemLabel, categoryOptions, listTitle
       if (error) throw error;
 
       setOpen(false);
+      toastSuccess(editing ? 'Article modifié' : 'Article ajouté');
       load();
     } catch (error) {
-      alert('Erreur : ' + error.message);
+      showError(error.message);
     } finally {
       setBusy(false);
     }
   }
 
   async function remove(item) {
-    if (!confirm(`Supprimer « ${item.name} » ?`)) return;
+    const ok = await confirmDelete(`Supprimer « ${item.name} » ?`, 'L’article disparaîtra de la carte des clients.');
+    if (!ok) return;
     const { error } = await db.from(table).delete().eq('id', item.id);
-    if (error) alert('Erreur : ' + error.message);
-    else load();
+    if (error) showError(error.message);
+    else {
+      toastSuccess('Article supprimé');
+      load();
+    }
   }
 
   const addLabel = itemLabel === 'plat' ? '+ Ajouter un plat' : '+ Ajouter une boisson';

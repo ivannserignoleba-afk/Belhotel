@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { db, formatPrice } from '../../lib/supabase';
 import { STATUS_LABELS, STATUS_BADGE, timeAgo, beep } from '../../lib/adminShared';
 import { Badge, Chip, EmptyState, GhostBtn } from './ui';
+import { confirmAction, showError } from '../../lib/alerts';
 
 const BOARDS = {
   'orders-rooms': {
@@ -89,8 +90,12 @@ export default function OrdersBoard({ boardKey, refreshTick, setBadge }) {
   const actionable = config.context === 'reception' ? ['reception'] : ['sent', 'preparing'];
 
   async function updateStatus(id, status) {
+    if (status === 'cancelled') {
+      const ok = await confirmAction('Annuler cette commande ?', 'Le client ne sera pas servi.', 'Oui, annuler');
+      if (!ok) return;
+    }
     const { error } = await db.from('orders').update({ status }).eq('id', id);
-    if (error) alert('Erreur : ' + error.message);
+    if (error) showError(error.message);
     else load();
   }
 

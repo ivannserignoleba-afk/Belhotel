@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '../../lib/supabase';
 import { ROLE_LABELS, beep } from '../../lib/adminShared';
+import { warnLowStock } from '../../lib/alerts';
 import OrdersBoard from '../../components/admin/OrdersBoard';
 import RequestsBoard from '../../components/admin/RequestsBoard';
 import RoomsPanel from '../../components/admin/RoomsPanel';
@@ -191,6 +192,32 @@ export default function AdminPage() {
     };
   }, [staff]);
 
+  // Alerte stock : badges sur les compartiments Stock + avertissement à l'arrivée
+  const lowStockWarned = useRef(false);
+  useEffect(() => {
+    if (!staff) return;
+    const targets = [];
+    if (sections.includes('stock-resto')) targets.push(['stock-resto', 'restaurant_menu']);
+    if (sections.includes('stock-bar')) targets.push(['stock-bar', 'bar_menu']);
+    if (!targets.length) return;
+    (async () => {
+      const lowNames = [];
+      for (const [key, table] of targets) {
+        const { data } = await db
+          .from(table)
+          .select('name, stock_qty')
+          .not('stock_qty', 'is', null)
+          .lte('stock_qty', 5);
+        setBadge(key, (data || []).length);
+        (data || []).forEach((item) => lowNames.push(`${item.name} (${item.stock_qty} restant${item.stock_qty > 1 ? 's' : ''})`));
+      }
+      if (lowNames.length && !lowStockWarned.current) {
+        lowStockWarned.current = true;
+        warnLowStock(lowNames);
+      }
+    })();
+  }, [staff, sections, refreshTick, setBadge]);
+
   if (!staff || !section) {
     return <p className="py-24 text-center text-brand-muted">Chargement...</p>;
   }
@@ -278,9 +305,12 @@ export default function AdminPage() {
           </div>
         ) : null}
 
-        <div className="mb-5">
-          <h1 className="text-2xl font-bold">{meta.title}</h1>
-          <p className="text-[0.92rem] text-brand-muted">{meta.subtitle}</p>
+        <div className="mb-5 flex items-center gap-3">
+          <span className="h-9 w-1.5 shrink-0 rounded-full bg-gradient-to-b from-brand to-brand-deep" />
+          <div>
+            <h1 className="text-2xl font-bold">{meta.title}</h1>
+            <p className="text-[0.92rem] text-brand-muted">{meta.subtitle}</p>
+          </div>
         </div>
 
         {/* Panneaux */}

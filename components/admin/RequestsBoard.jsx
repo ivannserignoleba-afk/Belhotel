@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { db } from '../../lib/supabase';
 import { timeAgo } from '../../lib/adminShared';
 import { Badge, EmptyState, GhostBtn } from './ui';
+import { showError } from '../../lib/alerts';
 
 const REQUEST_LABELS = { new: 'Nouvelle', in_progress: 'En cours', done: 'Traitée' };
 const REQUEST_BADGE = {
@@ -34,7 +35,7 @@ export default function RequestsBoard({ refreshTick, setBadge }) {
 
   async function advance(id, status) {
     const { error } = await db.from('service_requests').update({ status }).eq('id', id);
-    if (error) alert('Erreur : ' + error.message);
+    if (error) showError(error.message);
     else load();
   }
 

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { db } from '../../lib/supabase';
 import { downloadQrCard, printQrCards, qrToCanvas, qrDisplayName } from '../../lib/adminShared';
+import { confirmDelete, showError, toastSuccess } from '../../lib/alerts';
 import { Card, EmptyState, Field, GhostBtn, Modal, PrimaryBtn, inputCls, submitCls } from './ui';
 
 function QrPreview({ point, width = 170 }) {
@@ -44,7 +45,7 @@ function BulkQr({ type }) {
     const { error } = existing
       ? await db.from('qr_points').update({ is_active: true }).eq('id', existing.id)
       : await db.from('qr_points').insert([{ type, label: nextLabel }]);
-    if (error) alert('Erreur : ' + error.message);
+    if (error) showError(error.message);
     else load();
   }
 
@@ -52,7 +53,7 @@ function BulkQr({ type }) {
     if (!actives.length) return;
     const last = actives.reduce((a, b) => (pointNumber(a) >= pointNumber(b) ? a : b));
     const { error } = await db.from('qr_points').update({ is_active: false }).eq('id', last.id);
-    if (error) alert('Erreur : ' + error.message);
+    if (error) showError(error.message);
     else load();
   }
 
@@ -156,25 +157,33 @@ function RoomQr() {
     const { error } = await db.from('qr_points').insert([{ type: 'room', label: room.name.trim(), room_id: roomId }]);
     setBusy(false);
     if (error) {
-      alert('Erreur : ' + error.message);
+      showError(error.message);
       return;
     }
     setOpen(false);
     setRoomId('');
+    toastSuccess('QR code créé');
     load();
   }
 
   async function toggle(point) {
     const { error } = await db.from('qr_points').update({ is_active: !point.is_active }).eq('id', point.id);
-    if (error) alert('Erreur : ' + error.message);
+    if (error) showError(error.message);
     else load();
   }
 
   async function remove(point) {
-    if (!confirm(`Supprimer le QR code « ${qrDisplayName(point)} » ? Les affiches déjà imprimées ne fonctionneront plus.`)) return;
+    const ok = await confirmDelete(
+      `Supprimer le QR code « ${qrDisplayName(point)} » ?`,
+      'Les affiches déjà imprimées ne fonctionneront plus.',
+    );
+    if (!ok) return;
     const { error } = await db.from('qr_points').delete().eq('id', point.id);
-    if (error) alert('Erreur : ' + error.message);
-    else load();
+    if (error) showError(error.message);
+    else {
+      toastSuccess('QR code supprimé');
+      load();
+    }
   }
 
   return (

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { db, formatPrice } from '../../lib/supabase';
 import { uploadImage } from '../../lib/adminShared';
+import { confirmDelete, showError, toastSuccess } from '../../lib/alerts';
 import { Badge, Card, EmptyState, Field, GhostBtn, Modal, PrimaryBtn, inputCls, submitCls } from './ui';
 
 const EMPTY_FORM = { name: '', description: '', price: '', status: 'available' };
@@ -61,9 +62,10 @@ export default function RoomsPanel() {
       if (error) throw error;
 
       setOpen(false);
+      toastSuccess(editing ? 'Chambre modifiée' : 'Chambre ajoutée');
       load();
     } catch (error) {
-      alert('Erreur : ' + error.message);
+      showError(error.message);
     } finally {
       setBusy(false);
     }
@@ -72,15 +74,25 @@ export default function RoomsPanel() {
   async function toggleStatus(room) {
     const next = room.status === 'available' ? 'unavailable' : 'available';
     const { error } = await db.from('rooms').update({ status: next }).eq('id', room.id);
-    if (error) alert('Erreur : ' + error.message);
-    else load();
+    if (error) showError(error.message);
+    else {
+      toastSuccess(next === 'available' ? 'Chambre disponible' : 'Chambre indisponible');
+      load();
+    }
   }
 
   async function remove(room) {
-    if (!confirm(`Supprimer la chambre « ${(room.name || '').trim()} » ?`)) return;
+    const ok = await confirmDelete(
+      `Supprimer « ${(room.name || '').trim()} » ?`,
+      'La chambre disparaîtra du site et de l’admin.',
+    );
+    if (!ok) return;
     const { error } = await db.from('rooms').delete().eq('id', room.id);
-    if (error) alert('Erreur : ' + error.message + '\n(Une chambre liée à des réservations ne peut pas être supprimée.)');
-    else load();
+    if (error) showError(error.message + ' (Une chambre liée à des réservations ne peut pas être supprimée.)');
+    else {
+      toastSuccess('Chambre supprimée');
+      load();
+    }
   }
 
   return (

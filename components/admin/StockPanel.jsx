@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { db, formatPrice, CATEGORY_LABELS } from '../../lib/supabase';
 import { Badge, Card, EmptyState, GhostBtn } from './ui';
+import { showError, toastSuccess } from '../../lib/alerts';
 
 export default function StockPanel({ target }) {
   const table = target === 'resto' ? 'restaurant_menu' : 'bar_menu';
@@ -21,8 +22,11 @@ export default function StockPanel({ target }) {
 
   async function save(item, value) {
     const { error } = await db.from(table).update({ stock_qty: value }).eq('id', item.id);
-    if (error) alert('Erreur : ' + error.message);
-    else load();
+    if (error) showError(error.message);
+    else {
+      toastSuccess('Stock mis à jour');
+      load();
+    }
   }
 
   return (
@@ -33,6 +37,24 @@ export default function StockPanel({ target }) {
       <p className="mb-4 text-[0.9rem] text-brand-muted">
         Un article à 0 disparaît automatiquement de la carte des clients. « Illimité » = pas de suivi de stock.
       </p>
+      {items !== null && items.some((item) => item.stock_qty !== null && item.stock_qty <= 5) ? (
+        <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-amber-900">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 h-5 w-5 shrink-0">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+          </svg>
+          <div>
+            <strong>Alerte stock</strong>
+            <p className="text-[0.9rem]">
+              {items
+                .filter((item) => item.stock_qty !== null && item.stock_qty <= 5)
+                .map((item) => `${item.name} (${item.stock_qty})`)
+                .join(' \u00b7 ')}
+            </p>
+          </div>
+        </div>
+      ) : null}
       {items === null ? (
         <EmptyState>Chargement...</EmptyState>
       ) : items.length === 0 ? (
@@ -76,7 +98,7 @@ export default function StockPanel({ target }) {
                     onClick={() => {
                       const raw = drafts[item.id] ?? stock;
                       if (raw === '' || raw === null || Number(raw) < 0) {
-                        alert('Indiquez une quantité valide.');
+                        showError('Indiquez une quantité valide.');
                         return;
                       }
                       save(item, Number(raw));
