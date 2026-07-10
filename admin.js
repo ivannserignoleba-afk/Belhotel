@@ -164,24 +164,27 @@ document.addEventListener('DOMContentLoaded', async () => {
       board: 'board-orders-rooms',
       context: 'reception',
       active: ['reception'],
+      kpis: [['reception', 'À traiter'], ['sent', 'Envoyées'], ['delivered', 'Livrées'], ['cancelled', 'Annulées']],
       applyFilter: (query) => query.eq('origin_type', 'room'),
-      emptyText: 'Aucune commande en attente. Les commandes des chambres apparaîtront ici automatiquement.',
     },
     'orders-resto': {
       board: 'board-orders-resto',
       context: 'kitchen',
       active: ['sent', 'preparing'],
+      kpis: [['sent', 'En attente'], ['preparing', 'En préparation'], ['delivered', 'Livrées'], ['cancelled', 'Annulées']],
       applyFilter: (query) => query.eq('target', 'resto').neq('status', 'reception'),
-      emptyText: 'Aucune commande en cours. Les commandes des tables et des chambres apparaîtront ici automatiquement.',
     },
     'orders-bar': {
       board: 'board-orders-bar',
       context: 'kitchen',
       active: ['sent', 'preparing'],
+      kpis: [['sent', 'En attente'], ['preparing', 'En préparation'], ['delivered', 'Livrées'], ['cancelled', 'Annulées']],
       applyFilter: (query) => query.eq('target', 'bar').neq('status', 'reception'),
-      emptyText: 'Aucune commande en cours. Les commandes des salons et des chambres apparaîtront ici automatiquement.',
     },
   };
+
+  // Filtre de statut choisi par tableau (pastilles)
+  const boardFilters = {};
 
   function timeAgo(dateString) {
     const seconds = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000);
@@ -218,7 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderOrderCard(order, config, withActions) {
     const originName = (order.origin_type === 'room' ? 'Chambre ' : '') + order.origin_label.trim();
     const card = document.createElement('article');
-    card.className = 'order-ticket' + (withActions ? '' : ' is-history');
+    card.className = 'order-ticket' + (['delivered', 'cancelled'].includes(order.status) ? ' is-history' : '');
 
     const lines = (order.order_items || []).map((line) => `
       <div class="ticket-line">
@@ -281,7 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       .from('orders')
       .select('*, order_items(*)')
       .order('created_at', { ascending: false })
-      .limit(60);
+      .limit(80);
     query = config.applyFilter(query);
     const { data: orders, error } = await query;
 
@@ -290,28 +293,80 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    const active = orders.filter((order) => config.active.includes(order.status));
-    const history = orders.filter((order) => !config.active.includes(order.status)).slice(0, 12);
+    const counts = { all: orders.length };
+    ['reception', 'sent', 'preparing', 'delivered', 'cancelled'].forEach((status) => {
+      counts[status] = orders.filter((order) => order.status === status).length;
+    });
+    const activeCount = orders.filter((order) => config.active.includes(order.status)).length;
+    const revenue = orders
+      .filter((order) => ['reception', 'sent', 'preparing'].includes(order.status))
+      .reduce((total, order) => total + (order.total || 0), 0);
 
-    setNavBadge(key, active.length);
+    setNavBadge(key, activeCount);
 
+    const filter = boardFilters[key] || 'all';
     container.innerHTML = '';
-    if (!active.length) {
-      container.insertAdjacentHTML('beforeend', `<p class="empty-state">${config.emptyText}</p>`);
-    } else {
-      const grid = document.createElement('div');
-      grid.className = 'ticket-grid';
-      active.forEach((order) => grid.appendChild(renderOrderCard(order, config, true)));
-      container.appendChild(grid);
+
+    // Barre du haut : indicateur temps réel + test du son
+    const top = document.createElement('div');
+    top.className = 'board-topbar';
+    top.innerHTML = `
+      <span class="live-indicator"><span class="live-dot"></span>Temps réel actif</span>
+      <button type="button" class="qr-toggle sound-test">Tester le son</button>
+    `;
+    top.querySelector('.sound-test').addEventListener('click', beep);
+    container.appendChild(top);
+
+    // Cartes indicateurs
+    const kpiRow = document.createElement('div');
+    kpiRow.className = 'kpi-row';
+    config.kpis.forEach(([status, label]) => {
+      kpiRow.insertAdjacentHTML('beforeend',
+        `<div class="kpi-card kpi-${status}"><span>${label}</span><strong>${counts[status]}</strong></div>`);
+    });
+    kpiRow.insertAdjacentHTML('beforeend',
+      `<div class="kpi-card kpi-revenue"><span>Revenus en cours</span><strong>${formatPrice(revenue)}</strong></div>`);
+    container.appendChild(kpiRow);
+
+    // Pastilles de filtre
+    const chips = document.createElement('div');
+    chips.className = 'chip-row';
+    [['all', 'Toutes'], ...config.kpis].forEach(([value, label]) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (filter === value ? ' active' : '');
+      chip.textContent = `${label} (${counts[value]})`;
+      chip.addEventListener('click', () => {
+        boardFilters[key] = value;
+        loadOrdersBoard(key);
+      });
+      chips.appendChild(chip);
+    });
+    container.appendChild(chips);
+
+    // Tickets (les commandes à traiter d'abord)
+    const visible = filter === 'all' ? orders : orders.filter((order) => order.status === filter);
+    const sorted = [...visible].sort((a, b) => {
+      const aActive = config.active.includes(a.status) ? 0 : 1;
+      const bActive = config.active.includes(b.status) ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
+
+    if (!sorted.length) {
+      container.insertAdjacentHTML('beforeend', `
+        <div class="board-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <p>Aucune commande</p>
+        </div>`);
+      return;
     }
 
-    if (history.length) {
-      container.insertAdjacentHTML('beforeend', '<h3 class="board-subtitle">Historique récent</h3>');
-      const grid = document.createElement('div');
-      grid.className = 'ticket-grid';
-      history.forEach((order) => grid.appendChild(renderOrderCard(order, config, false)));
-      container.appendChild(grid);
-    }
+    const grid = document.createElement('div');
+    grid.className = 'ticket-grid';
+    const actionable = config.context === 'reception' ? ['reception'] : ['sent', 'preparing'];
+    sorted.forEach((order) => grid.appendChild(renderOrderCard(order, config, actionable.includes(order.status))));
+    container.appendChild(grid);
   }
 
   // ----- Demandes de service -----
@@ -445,44 +500,130 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ----- Aperçu : dashboard de direction (superadmin) -----
+  const OVERVIEW_PERIODS = [
+    ['today', 'Aujourd’hui', 1],
+    ['7', '7 jours', 7],
+    ['14', '14 jours', 14],
+    ['30', '30 jours', 30],
+    ['all', 'Tout', null],
+  ];
+  let overviewPeriod = 'today';
+
+  const KPI_ICONS = {
+    wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>',
+    receipt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>',
+    target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+    crown: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7Z"/><path d="M5 20h14"/></svg>',
+  };
+
   if (sections.includes('overview')) {
+    const chipsContainer = document.getElementById('period-chips');
+    OVERVIEW_PERIODS.forEach(([value, label]) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (overviewPeriod === value ? ' active' : '');
+      chip.textContent = label;
+      chip.dataset.period = value;
+      chip.addEventListener('click', () => {
+        overviewPeriod = value;
+        chipsContainer.querySelectorAll('.chip').forEach((item) => {
+          item.classList.toggle('active', item.dataset.period === value);
+        });
+        loadStats();
+      });
+      chipsContainer.appendChild(chip);
+    });
     loadStats();
   }
 
   async function loadStats() {
-    const grid = document.getElementById('stat-grid');
-    if (!grid) return;
+    const kpiContainer = document.getElementById('overview-kpis');
+    if (!kpiContainer) return;
 
-    const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    const periodMeta = OVERVIEW_PERIODS.find(([value]) => value === overviewPeriod);
+    const days = periodMeta[2];
+    let since = null;
+    if (days) {
+      since = new Date();
+      since.setHours(0, 0, 0, 0);
+      since.setDate(since.getDate() - (days - 1));
+    }
 
-    const [{ data: orders }, requestsRes, roomsRes] = await Promise.all([
-      db.from('orders').select('*, order_items(item_name, qty, unit_price)').gte('created_at', since).limit(1000),
+    let query = db.from('orders').select('*, order_items(item_name, qty, unit_price)').limit(2000);
+    if (since) query = query.gte('created_at', since.toISOString());
+    const [{ data: orders }, requestsRes] = await Promise.all([
+      query,
       db.from('service_requests').select('*', { count: 'exact', head: true }).neq('status', 'done'),
-      db.from('rooms').select('*', { count: 'exact', head: true }).eq('status', 'available'),
     ]);
 
     const valid = (orders || []).filter((order) => order.status !== 'cancelled');
-    const today = valid.filter((order) => new Date(order.created_at) >= todayStart);
-    const inProgress = (orders || []).filter((order) => ['reception', 'sent', 'preparing'].includes(order.status));
-    const sum = (list) => list.reduce((total, order) => total + (order.total || 0), 0);
+    const revenue = valid.reduce((total, order) => total + (order.total || 0), 0);
+    const average = valid.length ? Math.round(revenue / valid.length) : 0;
 
-    const tiles = [
-      { value: formatPrice(sum(today)), label: 'Chiffre d’affaires aujourd’hui' },
-      { value: formatPrice(sum(valid)), label: 'Chiffre d’affaires (30 jours)' },
-      { value: today.length, label: 'Commandes aujourd’hui' },
-      { value: inProgress.length, label: 'Commandes en cours' },
-      { value: requestsRes.count ?? 0, label: 'Demandes de service ouvertes' },
-      { value: roomsRes.count ?? 0, label: 'Chambres disponibles' },
-    ];
-    grid.innerHTML = '';
-    tiles.forEach((tile) => {
-      const element = document.createElement('div');
-      element.className = 'stat-tile';
-      element.innerHTML = `<strong>${tile.value}</strong><span>${tile.label}</span>`;
-      grid.appendChild(element);
+    // Regroupement par jour
+    const byDay = new Map();
+    valid.forEach((order) => {
+      const day = order.created_at.slice(0, 10);
+      byDay.set(day, (byDay.get(day) || 0) + (order.total || 0));
     });
+    let bestDay = null;
+    byDay.forEach((total, day) => {
+      if (!bestDay || total > bestDay.total) bestDay = { day, total };
+    });
+    const bestDayLabel = bestDay
+      ? new Date(bestDay.day).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+      : '—';
+
+    kpiContainer.innerHTML = `
+      <div class="kpi-card kpi-stat"><div><span>Chiffre d’affaires</span><strong>${formatPrice(revenue)}</strong></div><i class="kpi-icon icon-green">${KPI_ICONS.wallet}</i></div>
+      <div class="kpi-card kpi-stat"><div><span>Commandes</span><strong>${valid.length}</strong></div><i class="kpi-icon icon-blue">${KPI_ICONS.receipt}</i></div>
+      <div class="kpi-card kpi-stat"><div><span>Ticket moyen</span><strong>${formatPrice(average)}</strong></div><i class="kpi-icon icon-amber">${KPI_ICONS.target}</i></div>
+      <div class="kpi-card kpi-stat"><div><span>Meilleur jour</span><strong>${bestDayLabel}</strong><em>${bestDay ? formatPrice(bestDay.total) : ''}</em></div><i class="kpi-icon icon-purple">${KPI_ICONS.crown}</i></div>
+    `;
+
+    // Graphique : revenu par jour
+    const chartDays = [];
+    const chartSpan = days || 30;
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - (chartSpan - 1));
+    for (let index = 0; index < chartSpan; index += 1) {
+      const date = new Date(start);
+      date.setDate(start.getDate() + index);
+      const key = date.toISOString().slice(0, 10);
+      chartDays.push({
+        key,
+        label: date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+        total: byDay.get(key) || 0,
+      });
+    }
+    const maxTotal = Math.max(...chartDays.map((day) => day.total), 1);
+    document.getElementById('chart-period-label').textContent =
+      `${periodMeta[1]} · ${chartSpan} jour${chartSpan > 1 ? 's' : ''}${overviewPeriod === 'all' ? ' (graphique : 30 derniers jours)' : ''}`;
+    document.getElementById('revenue-chart').innerHTML = chartDays.map((day) => `
+      <div class="rc-col" title="${day.label} : ${formatPrice(day.total)}">
+        <div class="rc-bar" style="height:${Math.max(Math.round((day.total / maxTotal) * 100), 2)}%"></div>
+        ${chartSpan <= 14 ? `<span class="rc-label">${day.label}</span>` : ''}
+      </div>
+    `).join('');
+
+    // Répartition par pôle : Hôtel / Restauration / Bar
+    const bySection = { resto: { count: 0, revenue: 0 }, bar: { count: 0, revenue: 0 } };
+    const roomOrders = { count: 0, revenue: 0 };
+    valid.forEach((order) => {
+      bySection[order.target].count += 1;
+      bySection[order.target].revenue += order.total || 0;
+      if (order.origin_type === 'room') {
+        roomOrders.count += 1;
+        roomOrders.revenue += order.total || 0;
+      }
+    });
+
+    document.getElementById('section-activity').innerHTML = `
+      <div class="rank-row"><div class="rank-info"><strong>Hôtel (chambres)</strong><span>${roomOrders.count} commandes · ${formatPrice(roomOrders.revenue)} · ${requestsRes.count ?? 0} demande(s) ouverte(s)</span></div></div>
+      <div class="rank-row"><div class="rank-info"><strong>Restauration</strong><span>${bySection.resto.count} commandes · ${formatPrice(bySection.resto.revenue)}</span></div></div>
+      <div class="rank-row"><div class="rank-info"><strong>Bar</strong><span>${bySection.bar.count} commandes · ${formatPrice(bySection.bar.revenue)}</span></div></div>
+    `;
 
     // Articles les plus vendus
     const itemTotals = new Map();
@@ -497,7 +638,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const top = [...itemTotals.entries()].sort((a, b) => b[1].qty - a[1].qty).slice(0, 6);
     const topContainer = document.getElementById('top-items');
     if (!top.length) {
-      topContainer.innerHTML = '<p class="empty-state">Aucune vente sur les 30 derniers jours.</p>';
+      topContainer.innerHTML = '<p class="empty-state">Aucune vente sur cette période.</p>';
     } else {
       const maxQty = top[0][1].qty;
       topContainer.innerHTML = top.map(([name, entry]) => `
@@ -510,21 +651,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       `).join('');
     }
-
-    // Activité par section
-    const bySection = { resto: { count: 0, revenue: 0 }, bar: { count: 0, revenue: 0 } };
-    valid.forEach((order) => {
-      bySection[order.target].count += 1;
-      bySection[order.target].revenue += order.total || 0;
-    });
-    const byOrigin = { room: 0, table: 0, salon: 0 };
-    valid.forEach((order) => { byOrigin[order.origin_type] += 1; });
-
-    document.getElementById('section-activity').innerHTML = `
-      <div class="rank-row"><div class="rank-info"><strong>Restaurant</strong><span>${bySection.resto.count} commandes · ${formatPrice(bySection.resto.revenue)}</span></div></div>
-      <div class="rank-row"><div class="rank-info"><strong>Bar</strong><span>${bySection.bar.count} commandes · ${formatPrice(bySection.bar.revenue)}</span></div></div>
-      <div class="rank-row"><div class="rank-info"><strong>Origine des commandes</strong><span>${byOrigin.room} chambres · ${byOrigin.table} tables · ${byOrigin.salon} salons</span></div></div>
-    `;
   }
 
   // ================= PERSONNEL (superadmin) =================

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=14" />
+  <link rel="stylesheet" href="styles.css?v=15" />
 </head>
 <body class="dash-body">
   <div class="dash-shell" id="dash-shell" hidden>
@@ -34,15 +34,21 @@
 
       <!-- Aperçu (superadmin) -->
       <section class="dash-panel" id="panel-overview" hidden>
-        <div class="stat-grid" id="stat-grid"></div>
+        <div class="chip-row" id="period-chips"></div>
+        <div class="kpi-row kpi-row-stats" id="overview-kpis"></div>
+        <div class="admin-card chart-card">
+          <h2>Revenu par jour</h2>
+          <p class="hint" id="chart-period-label"></p>
+          <div class="revenue-chart" id="revenue-chart"></div>
+        </div>
         <div class="admin-grid overview-grid">
           <div class="admin-card">
-            <h2>Articles les plus vendus (30 jours)</h2>
-            <div id="top-items"><p class="empty-state">Chargement...</p></div>
+            <h2>Répartition par pôle</h2>
+            <div id="section-activity"><p class="empty-state">Chargement...</p></div>
           </div>
           <div class="admin-card">
-            <h2>Activité par section (30 jours)</h2>
-            <div id="section-activity"><p class="empty-state">Chargement...</p></div>
+            <h2>Articles les plus vendus</h2>
+            <div id="top-items"><p class="empty-state">Chargement...</p></div>
           </div>
         </div>
       </section>
@@ -208,7 +214,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1/build/qrcode.min.js"></script>
-  <script src="supabase-client.js?v=14"></script>
-  <script src="admin.js?v=14"></script>
+  <script src="supabase-client.js?v=15"></script>
+  <script src="admin.js?v=15"></script>
 </body>
 </html>

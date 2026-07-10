@@ -1034,6 +1034,161 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
 .confirm-btn:hover { background: #14532d; }
 .admin-item-actions { display: grid; gap: 0.4rem; }
 
+/* ----- Indicateurs, filtres et graphique (dashboards) ----- */
+.board-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+.live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+.live-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: livepulse 1.6s ease-in-out infinite;
+}
+@keyframes livepulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 1.1rem;
+}
+.kpi-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.05rem 1.2rem;
+  box-shadow: var(--shadow);
+}
+.kpi-card > span, .kpi-card div > span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+.kpi-card strong {
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  font-size: 1.7rem;
+  line-height: 1.15;
+  color: var(--text);
+}
+.kpi-card em { display: block; font-style: normal; color: var(--muted); font-size: 0.82rem; margin-top: 0.15rem; }
+.kpi-reception strong { color: var(--primary-deep); }
+.kpi-sent strong { color: #1d4ed8; }
+.kpi-preparing strong { color: #b45309; }
+.kpi-delivered strong { color: #15803d; }
+.kpi-cancelled strong { color: #6b7280; }
+.kpi-revenue strong { font-size: 1.35rem; }
+.kpi-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+.kpi-stat strong { font-size: 1.45rem; }
+.kpi-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.kpi-icon svg { width: 21px; height: 21px; }
+.icon-green { background: #dcfce7; color: #15803d; }
+.icon-blue { background: #dbeafe; color: #1d4ed8; }
+.icon-amber { background: #fef3c7; color: #b45309; }
+.icon-purple { background: #ede9fe; color: #6d28d9; }
+
+.chip-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+}
+.chip {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.55rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.chip:hover { border-color: var(--primary-dark); }
+.chip.active {
+  background: var(--primary-deep);
+  border-color: var(--primary-deep);
+  color: #fff;
+}
+
+.board-empty {
+  text-align: center;
+  padding: 3.5rem 1rem;
+  color: var(--muted);
+}
+.board-empty svg {
+  width: 58px;
+  height: 58px;
+  background: var(--bg-soft);
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 0.8rem;
+}
+.board-empty p { font-weight: 700; font-size: 1.05rem; color: var(--text); margin: 0; }
+
+.chart-card { margin-bottom: 1.2rem; }
+.revenue-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 230px;
+  margin-top: 1rem;
+}
+.rc-col {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+.rc-bar {
+  width: 100%;
+  max-width: 42px;
+  background: linear-gradient(180deg, var(--primary), var(--primary-deep));
+  border-radius: 6px 6px 0 0;
+  transition: height 0.4s ease;
+}
+.rc-label {
+  font-size: 0.66rem;
+  color: var(--muted);
+  margin-top: 0.35rem;
+  white-space: nowrap;
+}
+
 /* ----- Tickets de commande (dashboards) ----- */
 .orders-board { display: block; }
 .ticket-grid {
