@@ -13,7 +13,8 @@ export default function RoomsPanel({ readOnly = false }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null); // id de la chambre en édition
   const [form, setForm] = useState(EMPTY_FORM);
-  const [file, setFile] = useState(null);
+  const [existingImages, setExistingImages] = useState([]); // URLs déjà enregistrées
+  const [newFiles, setNewFiles] = useState([]); // nouvelles photos à envoyer
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -28,7 +29,8 @@ export default function RoomsPanel({ readOnly = false }) {
   function openAdd() {
     setEditing(null);
     setForm(EMPTY_FORM);
-    setFile(null);
+    setExistingImages([]);
+    setNewFiles([]);
     setOpen(true);
   }
 
@@ -40,7 +42,8 @@ export default function RoomsPanel({ readOnly = false }) {
       price: room.price,
       status: room.status || 'available',
     });
-    setFile(null);
+    setExistingImages((room.image_urls || []).filter(Boolean));
+    setNewFiles([]);
     setOpen(true);
   }
 
@@ -48,17 +51,23 @@ export default function RoomsPanel({ readOnly = false }) {
     event.preventDefault();
     setBusy(true);
     try {
+      const uploaded = [];
+      for (const image of newFiles) {
+        uploaded.push(await uploadImage(image, 'rooms'));
+      }
+      const allImages = [...existingImages, ...uploaded];
+
       const payload = {
         name: form.name.trim(),
         description: form.description.trim() || null,
         price: Number(form.price),
         status: form.status,
+        image_urls: allImages.length ? allImages : null,
       };
-      if (file) payload.image_urls = [await uploadImage(file, 'rooms')];
 
       const { error } = editing
         ? await db.from('rooms').update(payload).eq('id', editing)
-        : await db.from('rooms').insert([{ ...payload, image_urls: payload.image_urls || null }]);
+        : await db.from('rooms').insert([payload]);
       if (error) throw error;
 
       setOpen(false);
@@ -120,8 +129,15 @@ export default function RoomsPanel({ readOnly = false }) {
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     {room.image_urls?.[0] ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={room.image_urls[0]} alt="" className="h-16 w-16 shrink-0 rounded-lg object-cover" />
+                      <div className="relative shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={room.image_urls[0]} alt="" className="h-16 w-16 rounded-lg object-cover" />
+                        {room.image_urls.length > 1 ? (
+                          <span className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-brand-dark px-1 text-[0.62rem] font-bold text-white">
+                            {room.image_urls.length}
+                          </span>
+                        ) : null}
+                      </div>
                     ) : null}
                     <div className="min-w-0">
                       <strong>{(room.name || '').trim()}</strong>{' '}
@@ -181,13 +197,50 @@ export default function RoomsPanel({ readOnly = false }) {
               className={inputCls}
             />
           </Field>
-          <Field label="Photo (depuis l’ordinateur ou le téléphone)">
+          <Field label="Photos (plusieurs possibles, depuis l’ordinateur ou le téléphone)">
+            {existingImages.length || newFiles.length ? (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {existingImages.map((url) => (
+                  <div key={url} className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt="" className="h-20 w-20 rounded-lg object-cover" />
+                    <button
+                      type="button"
+                      aria-label="Retirer la photo"
+                      onClick={() => setExistingImages(existingImages.filter((item) => item !== url))}
+                      className="absolute -right-1.5 -top-1.5 grid h-6 w-6 place-items-center rounded-full bg-red-600 text-sm text-white shadow"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                {newFiles.map((image, index) => (
+                  <div key={`${image.name}-${index}`} className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={URL.createObjectURL(image)} alt="" className="h-20 w-20 rounded-lg object-cover ring-2 ring-brand" />
+                    <button
+                      type="button"
+                      aria-label="Retirer la photo"
+                      onClick={() => setNewFiles(newFiles.filter((_, position) => position !== index))}
+                      className="absolute -right-1.5 -top-1.5 grid h-6 w-6 place-items-center rounded-full bg-red-600 text-sm text-white shadow"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
             <input
               type="file"
               accept="image/*"
-              onChange={(event) => setFile(event.target.files[0] || null)}
+              multiple
+              onChange={(event) => {
+                setNewFiles([...newFiles, ...Array.from(event.target.files)]);
+                event.target.value = '';
+              }}
               className="w-full rounded-xl border border-dashed border-brand-line bg-brand-soft p-2.5 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-dark file:px-4 file:py-2.5 file:text-[0.76rem] file:font-bold file:uppercase file:tracking-wide file:text-white"
             />
+            <span className="text-[0.8rem] text-brand-muted">La première photo est la principale (affichée en couverture).</span>
           </Field>
           <Field label="Statut">
             <select

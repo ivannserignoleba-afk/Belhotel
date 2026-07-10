@@ -35,6 +35,16 @@ export default function RoomCard({ room, waNumber, onPreview }) {
           <span className="h-2 w-2 rounded-full bg-green-500" />
           Disponible
         </span>
+        {images.length > 1 ? (
+          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+            {images.map((_, dot) => (
+              <span
+                key={dot}
+                className={`h-1.5 rounded-full transition-all ${dot === index ? 'w-4 bg-white' : 'w-1.5 bg-white/60'}`}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
       <div className="flex flex-1 flex-col p-6">
         <h3 className="text-xl font-bold">{name}</h3>
@@ -48,10 +58,10 @@ export default function RoomCard({ room, waNumber, onPreview }) {
           {onPreview ? (
             <button
               type="button"
-              onClick={() => onPreview({ image, name, description: room.description })}
+              onClick={() => onPreview({ images: images.length ? images : [image], name, description: room.description, start: index })}
               className="flex-1 rounded-lg border border-brand-line px-4 py-3 text-[0.78rem] font-bold uppercase tracking-wider text-brand-ink hover:border-brand-dark hover:text-brand-deep"
             >
-              Photos
+              {images.length > 1 ? `Photos (${images.length})` : 'Photos'}
             </button>
           ) : null}
           <a

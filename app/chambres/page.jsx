@@ -5,6 +5,7 @@ import SiteNav from '../../components/SiteNav';
 import SiteFooter from '../../components/SiteFooter';
 import CtaBand from '../../components/CtaBand';
 import RoomCard from '../../components/RoomCard';
+import RoomGallery from '../../components/RoomGallery';
 import { db, getSetting, FALLBACK_WHATSAPP } from '../../lib/supabase';
 
 const HERO_IMAGES = [
@@ -75,33 +76,8 @@ export default function ChambresPage() {
         </div>
       </main>
 
-      {/* Modale photo */}
-      {preview ? (
-        <div
-          className="fixed inset-0 z-50 grid place-items-center bg-brand-night/60 p-4"
-          onClick={() => setPreview(null)}
-        >
-          <div
-            className="relative w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              aria-label="Fermer la photo"
-              onClick={() => setPreview(null)}
-              className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-brand-night/70 text-xl text-white hover:bg-brand-deep"
-            >
-              ×
-            </button>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={preview.image} alt={preview.name} className="max-h-[70vh] w-full object-cover" />
-            <div className="p-5">
-              <h3 className="text-lg font-bold">{preview.name}</h3>
-              {preview.description ? <p className="mt-1 text-brand-muted">{preview.description}</p> : null}
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {/* Galerie photos */}
+      <RoomGallery preview={preview} onClose={() => setPreview(null)} />
 
       <CtaBand waNumber={waNumber} title="Une question ? Une réservation ?" />
       <SiteFooter waNumber={waNumber} />
