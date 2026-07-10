@@ -1,0 +1,14 @@
+{
+  "name": "Belhotel",
+  "short_name": "Belhotel",
+  "description": "Gestion du complexe Belhotel : hôtel, restaurant et bar.",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#241a12",
+  "theme_color": "#ea580c",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

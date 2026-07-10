@@ -191,6 +191,45 @@ export default function AdminPage() {
     };
   }, []);
 
+  // Écran maintenu allumé (tablette cuisine/réception) + proposition d'installation
+  const [installEvt, setInstallEvt] = useState(null);
+  useEffect(() => {
+    let lock = null;
+    const acquire = async () => {
+      try {
+        if ('wakeLock' in navigator && document.visibilityState === 'visible') {
+          lock = await navigator.wakeLock.request('screen');
+        }
+      } catch (ignore) {
+        /* wake lock indisponible */
+      }
+    };
+    acquire();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') acquire();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    const onInstall = (event) => {
+      event.preventDefault();
+      setInstallEvt(event);
+    };
+    window.addEventListener('beforeinstallprompt', onInstall);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('beforeinstallprompt', onInstall);
+      if (lock) lock.release().catch(() => {});
+    };
+  }, []);
+
+  async function installApp() {
+    if (!installEvt) return;
+    installEvt.prompt();
+    await installEvt.userChoice;
+    setInstallEvt(null);
+  }
+
   async function enableAlerts() {
     initSound();
     beep(1);
@@ -313,31 +352,47 @@ export default function AdminPage() {
           })}
         </nav>
 
-        <button
-          type="button"
-          onClick={enableAlerts}
-          title={alertsOn ? 'Alertes sonores activées' : 'Activer le son et les notifications'}
-          className={`ml-auto grid h-10 w-10 place-items-center rounded-full transition md:ml-0 ${
-            alertsOn ? 'bg-brand-pale text-brand-deep' : 'bg-brand-soft text-brand-muted hover:text-brand-deep'
-          }`}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={logout}
-          className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-[0.88rem] font-semibold text-brand-muted hover:bg-brand-soft hover:text-brand-deep"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" x2="9" y1="12" y2="12" />
-          </svg>
-          <span className="hidden sm:inline">Déconnexion</span>
-        </button>
+        <div className="ml-auto flex items-center gap-1">
+          {installEvt ? (
+            <button
+              type="button"
+              onClick={installApp}
+              className="mr-1 hidden items-center gap-1.5 rounded-full bg-brand-dark px-3.5 py-2 text-[0.78rem] font-bold text-white hover:bg-brand-deep sm:inline-flex"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" x2="12" y1="15" y2="3" />
+              </svg>
+              Installer l’app
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={enableAlerts}
+            title={alertsOn ? 'Alertes sonores activées' : 'Activer le son et les notifications'}
+            className={`grid h-10 w-10 place-items-center rounded-full transition ${
+              alertsOn ? 'bg-brand-pale text-brand-deep' : 'bg-brand-soft text-brand-muted hover:text-brand-deep'
+            }`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={logout}
+            className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-[0.88rem] font-semibold text-brand-muted hover:bg-brand-soft hover:text-brand-deep"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" x2="9" y1="12" y2="12" />
+            </svg>
+            <span className="hidden sm:inline">Déconnexion</span>
+          </button>
+        </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-4 pb-16 pt-5 md:px-6">
