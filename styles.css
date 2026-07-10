@@ -795,10 +795,10 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
   border: none;
   background: none;
   border-radius: 999px;
-  padding: 0.6rem 1.15rem;
+  padding: 0.55rem 1rem;
   font-family: inherit;
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: #6d5d4f;
   cursor: pointer;
   white-space: nowrap;
@@ -849,14 +849,23 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
 .dash-user-info { min-width: 0; }
 
 .dash-main {
-  padding: 1.7rem 1.5rem 3rem;
+  padding: 1.5rem 1.5rem 3rem;
   width: 100%;
-  max-width: 1180px;
+  max-width: 1060px;
   margin: 0 auto;
 }
-.dash-header h1 { margin: 0; font-size: 1.9rem; }
-.dash-header p { color: var(--muted); margin: 0.25rem 0 0; }
-.dash-panel { margin-top: 1.7rem; }
+.dash-header h1 { margin: 0; font-size: 1.5rem; }
+.dash-header p { color: var(--muted); margin: 0.2rem 0 0; font-size: 0.92rem; }
+.dash-panel { margin-top: 1.2rem; }
+
+/* Densité du dashboard : boutons et cartes plus compacts */
+.dash-main .btn { padding: 0.75rem 1.3rem; font-size: 0.78rem; margin-top: 0; }
+.dash-main .admin-card { padding: 1.25rem 1.4rem; }
+.dash-main .admin-card h2 { font-size: 1.05rem; }
+.panel-actions { margin-bottom: 0.9rem; }
+.admin-item { align-items: center; }
+.staff-list { max-width: none; }
+.dash-main .empty-state { text-align: center; padding: 1.6rem 0; }
 
 .stat-grid {
   display: grid;
@@ -1173,9 +1182,9 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
   border: 1px solid var(--border);
   background: #fff;
   border-radius: 999px;
-  padding: 0.55rem 1.1rem;
+  padding: 0.48rem 1rem;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--text);
   cursor: pointer;
