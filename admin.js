@@ -40,65 +40,97 @@ document.addEventListener('DOMContentLoaded', async () => {
     box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/></svg>',
   };
 
-  // ----- Sections par rôle -----
+  // ----- Sections organisées en pôles : Hôtel / Restauration / Bar -----
   const SECTIONS = {
-    overview: { title: 'Aperçu', subtitle: 'Vue d’ensemble du complexe Belhotel', icon: 'overview' },
-    'orders-rooms': { title: 'Commandes des chambres', subtitle: 'Commandes reçues depuis les QR codes des chambres', icon: 'orders' },
-    requests: { title: 'Demandes de service', subtitle: 'Serviettes, climatisation, ménage...', icon: 'bell' },
-    'orders-resto': { title: 'Commandes', subtitle: 'Commandes des tables et des chambres en temps réel', icon: 'orders' },
-    'orders-bar': { title: 'Commandes', subtitle: 'Commandes des salons et des chambres en temps réel', icon: 'orders' },
-    rooms: { title: 'Chambres', subtitle: 'Gérez les chambres de l’hôtel', icon: 'bed' },
-    restaurant: { title: 'Menus du restaurant', subtitle: 'Gérez les cartes Standard, VIP et VVIP', icon: 'utensils' },
-    bar: { title: 'Carte du bar', subtitle: 'Gérez les boissons du bar', icon: 'wine' },
-    qr: { title: 'QR codes', subtitle: 'Générez les QR codes des chambres, tables et salons', icon: 'qr' },
-    staff: { title: 'Personnel', subtitle: 'Gérez les comptes de votre équipe', icon: 'users' },
-    stock: { title: 'Stock', subtitle: 'Suivi des quantités disponibles', icon: 'box' },
+    overview: { title: 'Aperçu', subtitle: 'Vue d’ensemble du complexe Belhotel', icon: 'overview', panel: 'overview' },
+    staff: { title: 'Personnel', subtitle: 'Gérez les comptes de votre équipe', icon: 'users', panel: 'staff' },
+    'orders-rooms': { title: 'Commandes des chambres', subtitle: 'Commandes reçues depuis les QR codes des chambres', icon: 'orders', panel: 'orders-rooms' },
+    requests: { title: 'Demandes de service', subtitle: 'Serviettes, climatisation, ménage...', icon: 'bell', panel: 'requests' },
+    rooms: { title: 'Chambres', subtitle: 'Gérez les chambres de l’hôtel', icon: 'bed', panel: 'rooms' },
+    'qr-room': { title: 'QR codes des chambres', subtitle: 'Créez et imprimez les QR codes à placer dans les chambres', icon: 'qr', panel: 'qr', qrType: 'room' },
+    'orders-resto': { title: 'Commandes', subtitle: 'Commandes des tables et des chambres en temps réel', icon: 'orders', panel: 'orders-resto' },
+    restaurant: { title: 'Menus du restaurant', subtitle: 'Gérez les cartes Standard, VIP et VVIP', icon: 'utensils', panel: 'restaurant' },
+    'stock-resto': { title: 'Stock du restaurant', subtitle: 'Quantités disponibles des plats', icon: 'box', panel: 'stock', stockTarget: 'resto' },
+    'qr-table': { title: 'QR codes des tables', subtitle: 'Créez et imprimez les QR codes des tables', icon: 'qr', panel: 'qr', qrType: 'table' },
+    'orders-bar': { title: 'Commandes', subtitle: 'Commandes des salons et des chambres en temps réel', icon: 'orders', panel: 'orders-bar' },
+    bar: { title: 'Carte du bar', subtitle: 'Gérez les boissons du bar', icon: 'wine', panel: 'bar' },
+    'stock-bar': { title: 'Stock du bar', subtitle: 'Quantités disponibles des boissons', icon: 'box', panel: 'stock', stockTarget: 'bar' },
+    'qr-salon': { title: 'QR codes des salons', subtitle: 'Créez et imprimez les QR codes des salons', icon: 'qr', panel: 'qr', qrType: 'salon' },
   };
 
   const NAV_LABELS = {
     overview: 'Aperçu',
-    'orders-rooms': 'Commandes chambres',
-    requests: 'Demandes de service',
-    'orders-resto': 'Commandes',
-    'orders-bar': 'Commandes',
-    rooms: 'Chambres',
-    restaurant: 'Restaurant',
-    bar: 'Bar',
-    qr: 'QR codes',
     staff: 'Personnel',
-    stock: 'Stock',
+    'orders-rooms': 'Commandes',
+    requests: 'Demandes de service',
+    rooms: 'Chambres',
+    'qr-room': 'QR codes',
+    'orders-resto': 'Commandes',
+    restaurant: 'Menus',
+    'stock-resto': 'Stock',
+    'qr-table': 'QR codes',
+    'orders-bar': 'Commandes',
+    bar: 'Carte',
+    'stock-bar': 'Stock',
+    'qr-salon': 'QR codes',
   };
 
+  const NAV_GROUPS = [
+    { title: 'Direction', items: ['overview', 'staff'] },
+    { title: 'Hôtel', items: ['orders-rooms', 'requests', 'rooms', 'qr-room'] },
+    { title: 'Restauration', items: ['orders-resto', 'restaurant', 'stock-resto', 'qr-table'] },
+    { title: 'Bar', items: ['orders-bar', 'bar', 'stock-bar', 'qr-salon'] },
+  ];
+
   const ROLE_SECTIONS = {
-    superadmin: ['overview', 'orders-rooms', 'requests', 'orders-resto', 'orders-bar', 'rooms', 'restaurant', 'bar', 'qr', 'staff', 'stock'],
-    reception: ['orders-rooms', 'requests', 'rooms', 'qr'],
-    resto: ['orders-resto', 'restaurant', 'qr', 'stock'],
-    bar: ['orders-bar', 'bar', 'qr', 'stock'],
+    superadmin: ['overview', 'staff', 'orders-rooms', 'requests', 'rooms', 'qr-room', 'orders-resto', 'restaurant', 'stock-resto', 'qr-table', 'orders-bar', 'bar', 'stock-bar', 'qr-salon'],
+    reception: ['orders-rooms', 'requests', 'rooms', 'qr-room'],
+    resto: ['orders-resto', 'restaurant', 'stock-resto', 'qr-table'],
+    bar: ['orders-bar', 'bar', 'stock-bar', 'qr-salon'],
   };
 
   const sections = ROLE_SECTIONS[role] || [];
 
-  // ----- Construction de la barre latérale -----
+  // ----- Barre latérale groupée par pôle -----
   const nav = document.getElementById('dash-nav');
-  sections.forEach((key, index) => {
-    const item = document.createElement('button');
-    item.type = 'button';
-    item.className = 'dash-nav-item' + (index === 0 ? ' active' : '');
-    item.dataset.section = key;
-    item.innerHTML = `${ICONS[SECTIONS[key].icon]}<span>${NAV_LABELS[key]}</span>`;
-    item.addEventListener('click', () => showSection(key));
-    nav.appendChild(item);
+  let firstKey = null;
+  NAV_GROUPS.forEach((group) => {
+    const items = group.items.filter((key) => sections.includes(key));
+    if (!items.length) return;
+
+    const label = document.createElement('div');
+    label.className = 'dash-nav-group';
+    label.textContent = group.title;
+    nav.appendChild(label);
+
+    items.forEach((key) => {
+      if (!firstKey) firstKey = key;
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'dash-nav-item';
+      item.dataset.section = key;
+      item.innerHTML = `${ICONS[SECTIONS[key].icon]}<span>${NAV_LABELS[key]}</span>`;
+      item.addEventListener('click', () => showSection(key));
+      nav.appendChild(item);
+    });
   });
 
   function showSection(key) {
+    const meta = SECTIONS[key];
     document.querySelectorAll('.dash-nav-item').forEach((item) => {
       item.classList.toggle('active', item.dataset.section === key);
     });
     document.querySelectorAll('.dash-panel').forEach((panel) => {
-      panel.hidden = panel.id !== `panel-${key}`;
+      panel.hidden = panel.id !== `panel-${meta.panel}`;
     });
-    document.getElementById('section-title').textContent = SECTIONS[key].title;
-    document.getElementById('section-subtitle').textContent = SECTIONS[key].subtitle;
+    document.getElementById('section-title').textContent = meta.title;
+    document.getElementById('section-subtitle').textContent = meta.subtitle;
+
+    if (meta.qrType) setQrScope(meta.qrType);
+    if (meta.stockTarget) {
+      document.getElementById('stock-resto-card').hidden = meta.stockTarget !== 'resto';
+      document.getElementById('stock-bar-card').hidden = meta.stockTarget !== 'bar';
+    }
   }
 
   // ----- Infos utilisateur -----
@@ -114,7 +146,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Affiche le shell une fois le rôle connu (évite le flash)
   document.getElementById('dash-shell').hidden = false;
-  showSection(sections[0]);
+  showSection(firstKey);
 
   // ================= COMMANDES EN TEMPS RÉEL =================
 
@@ -622,23 +654,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ================= STOCK =================
 
-  const STOCK_TABLES_BY_ROLE = {
-    superadmin: ['resto', 'bar'],
-    resto: ['resto'],
-    bar: ['bar'],
-  };
-
-  if (sections.includes('stock')) {
-    initStockPanel();
-  }
-
-  function initStockPanel() {
-    const targets = STOCK_TABLES_BY_ROLE[role] || [];
-    targets.forEach((target) => {
-      document.getElementById(`stock-${target}-card`).hidden = false;
-      loadStockList(target);
-    });
-  }
+  // Charge les stocks des sections autorisées (la visibilité des cartes
+  // est gérée par showSection selon le compartiment ouvert)
+  sections
+    .map((key) => SECTIONS[key].stockTarget)
+    .filter(Boolean)
+    .forEach((target) => loadStockList(target));
 
   async function loadStockList(target) {
     const table = target === 'resto' ? 'restaurant_menu' : 'bar_menu';
@@ -875,17 +896,47 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ================= GÉNÉRATEUR DE QR CODES =================
 
-  const QR_TYPES_BY_ROLE = {
-    superadmin: ['room', 'table', 'salon'],
-    reception: ['room'],
-    resto: ['table'],
-    bar: ['salon'],
-  };
   const QR_TYPE_LABELS = { room: 'Chambre', table: 'Table', salon: 'Salon' };
   const QR_ORANGE = '#c2410c';
+  let qrScope = null;
 
-  if (sections.includes('qr')) {
+  if (sections.some((key) => SECTIONS[key].qrType)) {
     initQrPanel();
+  }
+
+  function setQrScope(type) {
+    if (!type || type === qrScope) {
+      if (type) loadQrList();
+      return;
+    }
+    qrScope = type;
+    const typeSelect = document.getElementById('qr-type');
+    if (!typeSelect) return;
+    typeSelect.innerHTML = `<option value="${type}">${QR_TYPE_LABELS[type]}</option>`;
+    typeSelect.value = type;
+    syncQrTypeFields();
+    loadQrList();
+  }
+
+  async function syncQrTypeFields() {
+    const typeSelect = document.getElementById('qr-type');
+    const roomSelect = document.getElementById('qr-room');
+    const labelInput = document.getElementById('qr-label');
+    const isRoom = typeSelect.value === 'room';
+    roomSelect.hidden = !isRoom;
+    labelInput.hidden = isRoom;
+    labelInput.required = !isRoom;
+    if (isRoom && !roomSelect.dataset.loaded) {
+      const { data: rooms } = await db.from('rooms').select('id, name').order('name');
+      roomSelect.innerHTML = '<option value="">Choisissez la chambre...</option>';
+      (rooms || []).forEach((room) => {
+        const option = document.createElement('option');
+        option.value = room.id;
+        option.textContent = room.name.trim();
+        roomSelect.appendChild(option);
+      });
+      roomSelect.dataset.loaded = '1';
+    }
   }
 
   function qrUrl(point) {
@@ -952,41 +1003,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function initQrPanel() {
-    const allowedTypes = QR_TYPES_BY_ROLE[role] || [];
-    const typeSelect = document.getElementById('qr-type');
-    const roomSelect = document.getElementById('qr-room');
-    const labelInput = document.getElementById('qr-label');
-
-    allowedTypes.forEach((type) => {
-      const option = document.createElement('option');
-      option.value = type;
-      option.textContent = QR_TYPE_LABELS[type];
-      typeSelect.appendChild(option);
-    });
-
-    async function syncTypeFields() {
-      const isRoom = typeSelect.value === 'room';
-      roomSelect.hidden = !isRoom;
-      labelInput.hidden = isRoom;
-      labelInput.required = !isRoom;
-      if (isRoom && !roomSelect.dataset.loaded) {
-        const { data: rooms } = await db.from('rooms').select('id, name').order('name');
-        roomSelect.innerHTML = '<option value="">Choisissez la chambre...</option>';
-        (rooms || []).forEach((room) => {
-          const option = document.createElement('option');
-          option.value = room.id;
-          option.textContent = room.name.trim();
-          roomSelect.appendChild(option);
-        });
-        roomSelect.dataset.loaded = '1';
-      }
-    }
-    typeSelect.addEventListener('change', syncTypeFields);
-    syncTypeFields();
-
     document.getElementById('qr-form').addEventListener('submit', async (event) => {
       event.preventDefault();
-      const type = typeSelect.value;
+      const roomSelect = document.getElementById('qr-room');
+      const labelInput = document.getElementById('qr-label');
+      const type = document.getElementById('qr-type').value;
       let payload;
 
       if (type === 'room') {
@@ -1013,19 +1034,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadQrList();
     });
 
-    loadQrList();
+    // Portée initiale : le premier type de QR autorisé pour ce rôle
+    const firstType = sections.map((key) => SECTIONS[key].qrType).find(Boolean);
+    setQrScope(firstType);
   }
 
   async function loadQrList() {
     const container = document.getElementById('qr-list');
-    if (!container) return;
-    const allowedTypes = QR_TYPES_BY_ROLE[role] || [];
+    if (!container || !qrScope) return;
 
     const { data: points, error } = await db
       .from('qr_points')
       .select('*')
-      .in('type', allowedTypes)
-      .order('type')
+      .eq('type', qrScope)
       .order('label');
 
     if (error) {
