@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=18" />
+  <link rel="stylesheet" href="styles.css?v=19" />
 </head>
 <body class="dash-body">
   <div class="dash-shell" id="dash-shell" hidden>
@@ -150,7 +150,8 @@
 
       <!-- QR codes -->
       <section class="dash-panel" id="panel-qr" hidden>
-        <div class="admin-grid">
+        <!-- Mode chambres : création une par une -->
+        <div class="admin-grid" id="qr-room-mode" hidden>
           <div class="admin-card">
             <h2>Créer un QR code</h2>
             <form id="qr-form">
@@ -159,12 +160,32 @@
               <input type="text" name="label" id="qr-label" placeholder="Ex : Table 3" />
               <button type="submit">Créer le QR code</button>
             </form>
-            <p class="hint">Le QR code renvoie le client vers la page de commande. Téléchargez la carte puis imprimez-la et placez-la dans la chambre, sur la table ou dans le salon.</p>
+            <p class="hint">Le QR code renvoie le client vers la page de commande. Téléchargez la carte puis imprimez-la et placez-la dans la chambre.</p>
           </div>
           <div class="admin-card">
             <h2>QR codes existants</h2>
             <div id="qr-list" class="qr-grid"><p class="empty-state">Chargement...</p></div>
           </div>
+        </div>
+
+        <!-- Mode tables / salons : génération par compteur (comme le modèle) -->
+        <div id="qr-bulk-mode" hidden>
+          <div class="qr-bulk-bar">
+            <div class="admin-card qr-count-card">
+              <span class="qr-count-label" id="qr-count-label">Nombre de tables</span>
+              <div class="qr-stepper">
+                <button type="button" id="qr-minus" aria-label="Retirer">−</button>
+                <strong id="qr-count">0</strong>
+                <button type="button" id="qr-plus" aria-label="Ajouter">+</button>
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary" id="qr-print-all">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+              Imprimer / Exporter PDF
+            </button>
+          </div>
+          <p class="hint" id="qr-bulk-hint">Chaque QR code ouvre la page de commande avec le bon numéro pré-rempli. Le bouton − retire le dernier numéro (son QR est désactivé).</p>
+          <div class="qr-print-grid" id="qr-print-grid"><p class="empty-state">Chargement...</p></div>
         </div>
       </section>
 
@@ -228,7 +249,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1/build/qrcode.min.js"></script>
-  <script src="supabase-client.js?v=18"></script>
-  <script src="admin.js?v=18"></script>
+  <script src="supabase-client.js?v=19"></script>
+  <script src="admin.js?v=19"></script>
 </body>
 </html>

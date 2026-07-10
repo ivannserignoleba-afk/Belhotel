@@ -1072,17 +1072,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function setQrScope(type) {
-    if (!type || type === qrScope) {
-      if (type) loadQrList();
-      return;
-    }
+    if (!type) return;
     qrScope = type;
-    const typeSelect = document.getElementById('qr-type');
-    if (!typeSelect) return;
-    typeSelect.innerHTML = `<option value="${type}">${QR_TYPE_LABELS[type]}</option>`;
-    typeSelect.value = type;
-    syncQrTypeFields();
-    loadQrList();
+    const roomMode = document.getElementById('qr-room-mode');
+    const bulkMode = document.getElementById('qr-bulk-mode');
+    if (!roomMode || !bulkMode) return;
+
+    if (type === 'room') {
+      // Mode chambres : formulaire classique
+      roomMode.hidden = false;
+      bulkMode.hidden = true;
+      const typeSelect = document.getElementById('qr-type');
+      typeSelect.innerHTML = `<option value="room">${QR_TYPE_LABELS.room}</option>`;
+      typeSelect.value = 'room';
+      syncQrTypeFields();
+      loadQrList();
+    } else {
+      // Mode tables / salons : compteur + cartes imprimables
+      roomMode.hidden = true;
+      bulkMode.hidden = false;
+      const noun = type === 'table' ? 'tables' : 'salons';
+      document.getElementById('qr-count-label').textContent = `Nombre de ${noun}`;
+      loadQrBulk();
+    }
   }
 
   async function syncQrTypeFields() {
@@ -1201,9 +1213,117 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadQrList();
     });
 
+    // Mode compteur (tables / salons)
+    document.getElementById('qr-plus').addEventListener('click', bulkAdd);
+    document.getElementById('qr-minus').addEventListener('click', bulkRemove);
+    document.getElementById('qr-print-all').addEventListener('click', printAllQr);
+
     // Portée initiale : le premier type de QR autorisé pour ce rôle
     const firstType = sections.map((key) => SECTIONS[key].qrType).find(Boolean);
     setQrScope(firstType);
+  }
+
+  // ----- Mode compteur : Table 1..N / Salon 1..N (comme le modèle) -----
+  const QR_BASE_LABEL = { table: 'Table', salon: 'Salon' };
+  let bulkPoints = [];
+
+  function pointNumber(point) {
+    const digits = (point.label.match(/\d+/) || ['0'])[0];
+    const number = parseInt(digits, 10);
+    return Number.isNaN(number) ? 0 : number;
+  }
+
+  async function loadQrBulk() {
+    const grid = document.getElementById('qr-print-grid');
+    if (!grid || qrScope === 'room') return;
+
+    const { data: points, error } = await db
+      .from('qr_points')
+      .select('*')
+      .eq('type', qrScope);
+
+    if (error) {
+      grid.innerHTML = `<p class="empty-state">Erreur de chargement : ${error.message}</p>`;
+      return;
+    }
+
+    bulkPoints = (points || []).sort((a, b) => pointNumber(a) - pointNumber(b));
+    const actives = bulkPoints.filter((point) => point.is_active);
+    document.getElementById('qr-count').textContent = actives.length;
+
+    grid.innerHTML = '';
+    if (!actives.length) {
+      grid.innerHTML = '<p class="empty-state">Utilisez le compteur + pour générer vos QR codes.</p>';
+      return;
+    }
+
+    actives.forEach((point) => {
+      const card = document.createElement('div');
+      card.className = 'qr-print-card';
+      card.innerHTML = `
+        <span class="qr-print-brand">BELHOTEL</span>
+        <strong class="qr-print-label">${point.label.trim().toUpperCase()}</strong>
+        <canvas></canvas>
+        <button type="button" class="qr-toggle qr-dl">Télécharger</button>
+      `;
+      QRCode.toCanvas(card.querySelector('canvas'), qrUrl(point), {
+        width: 170,
+        margin: 1,
+        errorCorrectionLevel: 'M',
+        color: { dark: QR_ORANGE, light: '#ffffff' },
+      });
+      card.querySelector('.qr-dl').addEventListener('click', () => downloadQrCard(point));
+      grid.appendChild(card);
+    });
+  }
+
+  async function bulkAdd() {
+    const base = QR_BASE_LABEL[qrScope];
+    if (!base) return;
+    const actives = bulkPoints.filter((point) => point.is_active);
+    const nextNumber = Math.max(0, ...actives.map(pointNumber)) + 1;
+    const nextLabel = `${base} ${nextNumber}`;
+
+    // Si ce numéro existe déjà (désactivé), on le réactive au lieu d'en créer un autre
+    const existing = bulkPoints.find((point) => point.label.trim().toLowerCase() === nextLabel.toLowerCase());
+    const { error } = existing
+      ? await db.from('qr_points').update({ is_active: true }).eq('id', existing.id)
+      : await db.from('qr_points').insert([{ type: qrScope, label: nextLabel }]);
+
+    if (error) alert('Erreur : ' + error.message);
+    else loadQrBulk();
+  }
+
+  async function bulkRemove() {
+    const actives = bulkPoints.filter((point) => point.is_active);
+    if (!actives.length) return;
+    const last = actives.reduce((a, b) => (pointNumber(a) >= pointNumber(b) ? a : b));
+    const { error } = await db.from('qr_points').update({ is_active: false }).eq('id', last.id);
+    if (error) alert('Erreur : ' + error.message);
+    else loadQrBulk();
+  }
+
+  async function printAllQr() {
+    const actives = bulkPoints.filter((point) => point.is_active);
+    if (!actives.length) return;
+
+    const button = document.getElementById('qr-print-all');
+    button.disabled = true;
+    const images = [];
+    for (const point of actives) {
+      const canvas = await buildQrCard(point);
+      images.push(`<img src="${canvas.toDataURL('image/png')}" />`);
+    }
+    button.disabled = false;
+
+    const win = window.open('', '_blank');
+    if (!win) { alert('Autorisez les fenêtres pop-up pour imprimer.'); return; }
+    win.document.write(`<!DOCTYPE html><html lang="fr"><head><title>QR codes Belhotel</title>
+      <style>body{margin:0;padding:0.4cm;display:flex;flex-wrap:wrap;gap:0.4cm}img{width:8.6cm;page-break-inside:avoid}</style>
+      </head><body>${images.join('')}</body></html>`);
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 500);
   }
 
   async function loadQrList() {

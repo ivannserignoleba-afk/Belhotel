@@ -1342,6 +1342,81 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
   .overview-grid { grid-template-columns: 1fr; }
 }
 
+/* ----- QR codes : mode compteur (tables / salons) ----- */
+.qr-bulk-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+.qr-count-card {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  padding: 0.9rem 1.4rem;
+}
+.qr-count-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.qr-stepper { display: flex; align-items: center; gap: 0.9rem; }
+.qr-stepper button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text);
+  font-family: inherit;
+}
+.qr-stepper button:hover { border-color: var(--primary-dark); color: var(--primary-deep); }
+.qr-stepper strong {
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  font-size: 1.6rem;
+  min-width: 2ch;
+  text-align: center;
+}
+#qr-print-all { margin-top: 0; }
+.qr-print-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.qr-print-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.3rem 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.qr-print-brand {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  color: var(--primary-deep);
+}
+.qr-print-label {
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  font-size: 1.55rem;
+  line-height: 1.15;
+}
+.qr-print-card canvas { margin: 0.3rem 0; }
+.qr-print-card .qr-dl { width: auto; padding: 0.45rem 1.1rem; }
+
 /* ----- Panneau QR codes ----- */
 .qr-grid {
   display: grid;
