@@ -7,9 +7,12 @@ const nextConfig = {
       { source: '/chambres.html', destination: '/chambres', permanent: false },
       { source: '/restaurant.html', destination: '/restaurant', permanent: false },
       { source: '/bar.html', destination: '/bar', permanent: false },
-      // Espace admin : encore servi par les pages statiques de public/
-      { source: '/admin', destination: '/admin.html', permanent: false },
-      { source: '/admin/login', destination: '/admin-login.html', permanent: false },
+      // Les QR codes déjà imprimés pointent vers commander.html?c=... :
+      // la redirection conserve automatiquement le paramètre ?c
+      { source: '/commander.html', destination: '/commander', permanent: false },
+      // Ancien espace admin
+      { source: '/admin.html', destination: '/admin', permanent: false },
+      { source: '/admin-login.html', destination: '/admin/login', permanent: false },
     ];
   },
 };

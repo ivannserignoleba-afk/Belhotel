@@ -52,12 +52,12 @@ export default function SiteNav({ active }) {
             {link.label}
           </Link>
         ))}
-        <a
-          href="/admin-login.html"
+        <Link
+          href="/admin/login"
           className="mt-1 rounded-lg bg-brand-dark px-4 py-2.5 text-center text-[0.82rem] font-bold uppercase tracking-wider text-white hover:bg-brand-deep md:ml-2 md:mt-0"
         >
           Connexion admin
-        </a>
+        </Link>
       </div>
     </nav>
   );
