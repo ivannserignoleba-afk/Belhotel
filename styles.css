@@ -958,7 +958,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
 }
 .admin-card h2 { margin-top: 0; font-size: 1.2rem; }
 .admin-card form { display: grid; gap: 0.85rem; }
-.admin-card input, .admin-card textarea, .admin-card select, .admin-card button {
+.admin-card input:not([type="file"]), .admin-card textarea, .admin-card select, .admin-card button[type="submit"] {
   width: 100%;
   padding: 0.85rem 1rem;
   border-radius: 12px;
@@ -971,7 +971,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
   outline: 2px solid var(--primary);
   border-color: var(--primary);
 }
-.admin-card button {
+.admin-card button[type="submit"] {
   cursor: pointer;
   background: var(--primary-dark);
   color: #fff;
@@ -982,8 +982,34 @@ main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }
   border: none;
   border-radius: 10px;
 }
-.admin-card button:hover { background: var(--primary-deep); }
-.admin-card button:disabled { opacity: 0.6; cursor: wait; }
+.admin-card button[type="submit"]:hover { background: var(--primary-deep); }
+.admin-card button[type="submit"]:disabled { opacity: 0.6; cursor: wait; }
+.admin-card input[type="file"] {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+  font: inherit;
+  color: var(--text);
+}
+
+/* Fenêtres modales des formulaires */
+.form-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(36, 22, 12, 0.55);
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  overflow-y: auto;
+}
+.form-modal .form-card {
+  width: min(560px, 100%);
+  max-width: 560px;
+  max-height: 92vh;
+  overflow-y: auto;
+  margin: 0;
+}
 .admin-card .hint { color: var(--muted); font-size: 0.92rem; }
 
 .admin-list, .admin-item-list { display: grid; gap: 0.8rem; }

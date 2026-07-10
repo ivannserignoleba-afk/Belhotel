@@ -724,13 +724,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   function initStaffPanel() {
     loadStaffList();
 
-    // Ouverture / fermeture du formulaire (comme le modèle)
-    const formCard = document.getElementById('staff-form-card');
+    // Ouverture / fermeture du formulaire en modale (comme le modèle)
     document.getElementById('staff-add-toggle').addEventListener('click', () => {
-      formCard.hidden = !formCard.hidden;
+      document.getElementById('staff-form').reset();
+      document.getElementById('staff-feedback').textContent = '';
+      openModal('modal-staff-form');
     });
     document.getElementById('staff-form-close').addEventListener('click', () => {
-      formCard.hidden = true;
+      closeModal('modal-staff-form');
     });
 
     // Œil du mot de passe
@@ -788,7 +789,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       feedback.textContent = `Compte créé : ${email} peut se connecter dès maintenant.`;
       form.reset();
-      setTimeout(() => { formCard.hidden = true; feedback.textContent = ''; }, 2200);
+      setTimeout(() => { closeModal('modal-staff-form'); feedback.textContent = ''; }, 2200);
       loadStaffList();
     });
   }
@@ -930,6 +931,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     initRooms();
   }
 
+  // ----- Fenêtres modales des formulaires -----
+  function openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.hidden = false;
+  }
+  function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.hidden = true;
+  }
+  // Fermeture par le × et par un clic sur le fond sombre
+  document.querySelectorAll('.form-close[data-close]').forEach((button) => {
+    button.addEventListener('click', () => closeModal(button.dataset.close));
+  });
+  document.querySelectorAll('.form-modal').forEach((modal) => {
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) modal.hidden = true;
+    });
+  });
+
   function resetItemForm(form, titleId, addTitle, addButton) {
     form.reset();
     form.editing_id.value = '';
@@ -942,14 +962,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById(titleId).textContent = editTitle;
     form.querySelector('button[type="submit"]').textContent = 'Enregistrer les modifications';
     form.querySelector('.form-cancel').hidden = false;
-    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    openModal(`modal-${form.id}`);
   }
 
   function initRooms() {
     loadRooms();
     const form = document.getElementById('room-form');
+
+    document.getElementById('room-add-toggle').addEventListener('click', () => {
+      resetItemForm(form, 'room-form-title', 'Ajouter une chambre', 'Ajouter la chambre');
+      openModal('modal-room-form');
+    });
     form.querySelector('.form-cancel').addEventListener('click', () => {
       resetItemForm(form, 'room-form-title', 'Ajouter une chambre', 'Ajouter la chambre');
+      closeModal('modal-room-form');
     });
 
     form.addEventListener('submit', async (event) => {
@@ -976,6 +1002,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (error) throw error;
         resetItemForm(form, 'room-form-title', 'Ajouter une chambre', 'Ajouter la chambre');
+        closeModal('modal-room-form');
         loadRooms();
       } catch (error) {
         alert('Erreur : ' + error.message);
@@ -1111,6 +1138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const form = document.getElementById(formId);
     const titleId = `${formId}-title`;
+    const modalId = `modal-${formId}`;
     const addTitle = itemLabel === 'plat' ? 'Ajouter un plat' : 'Ajouter une boisson';
     const addButton = itemLabel === 'plat' ? 'Ajouter le plat' : 'Ajouter la boisson';
     const uploadFolder = table === 'restaurant_menu' ? 'restaurant' : 'bar';
@@ -1125,8 +1153,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       startItemEdit(form, titleId, itemLabel === 'plat' ? 'Modifier le plat' : 'Modifier la boisson');
     }
 
+    document.getElementById(formId.replace('-form', '-add-toggle')).addEventListener('click', () => {
+      resetItemForm(form, titleId, addTitle, addButton);
+      openModal(modalId);
+    });
     form.querySelector('.form-cancel').addEventListener('click', () => {
       resetItemForm(form, titleId, addTitle, addButton);
+      closeModal(modalId);
     });
 
     form.addEventListener('submit', async (event) => {
@@ -1153,6 +1186,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (error) throw error;
         resetItemForm(form, titleId, addTitle, addButton);
+        closeModal(modalId);
         loadItems();
       } catch (error) {
         alert('Erreur : ' + error.message);
@@ -1338,6 +1372,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
       labelInput.value = '';
+      closeModal('modal-qr-form');
       loadQrList();
     });
 
@@ -1345,6 +1380,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('qr-plus').addEventListener('click', bulkAdd);
     document.getElementById('qr-minus').addEventListener('click', bulkRemove);
     document.getElementById('qr-print-all').addEventListener('click', printAllQr);
+
+    // Mode chambres : ouverture du formulaire en modale
+    document.getElementById('qr-add-toggle').addEventListener('click', () => {
+      openModal('modal-qr-form');
+    });
 
     // Portée initiale : le premier type de QR autorisé pour ce rôle
     const firstType = sections.map((key) => SECTIONS[key].qrType).find(Boolean);

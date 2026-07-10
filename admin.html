@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=22" />
+  <link rel="stylesheet" href="styles.css?v=23" />
 </head>
 <body class="dash-body">
   <div class="dash-shell" id="dash-shell" hidden>
@@ -76,9 +76,20 @@
 
       <!-- Chambres -->
       <section class="dash-panel" id="panel-rooms" hidden>
-        <div class="admin-grid">
-          <div class="admin-card">
-            <h2 id="room-form-title">Ajouter une chambre</h2>
+        <div class="panel-actions">
+          <button type="button" class="btn btn-primary" id="room-add-toggle">+ Ajouter une chambre</button>
+        </div>
+        <div class="admin-card">
+          <h2>Chambres enregistrées</h2>
+          <div id="room-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
+        </div>
+
+        <div class="form-modal" id="modal-room-form" hidden>
+          <div class="admin-card form-card">
+            <div class="form-card-head">
+              <h2 id="room-form-title">Ajouter une chambre</h2>
+              <button type="button" class="modal-close form-close" data-close="modal-room-form" aria-label="Fermer">×</button>
+            </div>
             <form id="room-form">
               <input type="hidden" name="editing_id" />
               <label class="field"><span>Nom de la chambre</span>
@@ -100,18 +111,25 @@
               </div>
             </form>
           </div>
-          <div class="admin-card">
-            <h2>Chambres enregistrées</h2>
-            <div id="room-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
-          </div>
         </div>
       </section>
 
       <!-- Restaurant -->
       <section class="dash-panel" id="panel-restaurant" hidden>
-        <div class="admin-grid">
-          <div class="admin-card">
-            <h2 id="restaurant-form-title">Ajouter un plat</h2>
+        <div class="panel-actions">
+          <button type="button" class="btn btn-primary" id="restaurant-add-toggle">+ Ajouter un plat</button>
+        </div>
+        <div class="admin-card">
+          <h2>Plats du restaurant</h2>
+          <div id="restaurant-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
+        </div>
+
+        <div class="form-modal" id="modal-restaurant-form" hidden>
+          <div class="admin-card form-card">
+            <div class="form-card-head">
+              <h2 id="restaurant-form-title">Ajouter un plat</h2>
+              <button type="button" class="modal-close form-close" data-close="modal-restaurant-form" aria-label="Fermer">×</button>
+            </div>
             <form id="restaurant-form">
               <input type="hidden" name="editing_id" />
               <label class="field"><span>Catégorie</span>
@@ -134,18 +152,25 @@
               </div>
             </form>
           </div>
-          <div class="admin-card">
-            <h2>Plats du restaurant</h2>
-            <div id="restaurant-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
-          </div>
         </div>
       </section>
 
       <!-- Bar -->
       <section class="dash-panel" id="panel-bar" hidden>
-        <div class="admin-grid">
-          <div class="admin-card">
-            <h2 id="bar-form-title">Ajouter une boisson</h2>
+        <div class="panel-actions">
+          <button type="button" class="btn btn-primary" id="bar-add-toggle">+ Ajouter une boisson</button>
+        </div>
+        <div class="admin-card">
+          <h2>Boissons du bar</h2>
+          <div id="bar-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
+        </div>
+
+        <div class="form-modal" id="modal-bar-form" hidden>
+          <div class="admin-card form-card">
+            <div class="form-card-head">
+              <h2 id="bar-form-title">Ajouter une boisson</h2>
+              <button type="button" class="modal-close form-close" data-close="modal-bar-form" aria-label="Fermer">×</button>
+            </div>
             <form id="bar-form">
               <input type="hidden" name="editing_id" />
               <label class="field"><span>Catégorie</span>
@@ -168,19 +193,27 @@
               </div>
             </form>
           </div>
-          <div class="admin-card">
-            <h2>Boissons du bar</h2>
-            <div id="bar-list" class="admin-list"><p class="empty-state">Chargement...</p></div>
-          </div>
         </div>
       </section>
 
       <!-- QR codes -->
       <section class="dash-panel" id="panel-qr" hidden>
         <!-- Mode chambres : création une par une -->
-        <div class="admin-grid" id="qr-room-mode" hidden>
+        <div id="qr-room-mode" hidden>
+          <div class="panel-actions">
+            <button type="button" class="btn btn-primary" id="qr-add-toggle">+ Créer un QR code</button>
+          </div>
           <div class="admin-card">
-            <h2>Créer un QR code</h2>
+            <h2>QR codes existants</h2>
+            <div id="qr-list" class="qr-grid"><p class="empty-state">Chargement...</p></div>
+          </div>
+
+          <div class="form-modal" id="modal-qr-form" hidden>
+            <div class="admin-card form-card">
+              <div class="form-card-head">
+                <h2>Créer un QR code</h2>
+                <button type="button" class="modal-close form-close" data-close="modal-qr-form" aria-label="Fermer">×</button>
+              </div>
             <form id="qr-form">
               <label class="field"><span>Type</span>
                 <select name="type" id="qr-type" required></select></label>
@@ -190,11 +223,8 @@
                 <input type="text" name="label" id="qr-label" placeholder="Ex : Table 3" /></label>
               <button type="submit">Créer le QR code</button>
             </form>
-            <p class="hint">Le QR code renvoie le client vers la page de commande. Téléchargez la carte puis imprimez-la et placez-la dans la chambre.</p>
-          </div>
-          <div class="admin-card">
-            <h2>QR codes existants</h2>
-            <div id="qr-list" class="qr-grid"><p class="empty-state">Chargement...</p></div>
+              <p class="hint">Le QR code renvoie le client vers la page de commande. Téléchargez la carte puis imprimez-la et placez-la dans la chambre.</p>
+            </div>
           </div>
         </div>
 
@@ -225,7 +255,8 @@
           <button type="button" class="btn btn-primary" id="staff-add-toggle">+ Ajouter</button>
         </div>
 
-        <div class="admin-card form-card" id="staff-form-card" hidden>
+        <div class="form-modal" id="modal-staff-form" hidden>
+          <div class="admin-card form-card" id="staff-form-card">
           <div class="form-card-head">
             <h2>Nouveau membre</h2>
             <button type="button" class="modal-close form-close" id="staff-form-close" aria-label="Fermer">×</button>
@@ -255,6 +286,7 @@
           </form>
           <p class="hint">Communiquez l’email et le mot de passe à l’employé. Il pourra se connecter immédiatement.</p>
           <p class="service-feedback" id="staff-feedback" aria-live="polite"></p>
+        </div>
         </div>
 
         <div id="staff-list" class="admin-list staff-list"><p class="empty-state">Chargement...</p></div>
@@ -294,7 +326,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1/build/qrcode.min.js"></script>
-  <script src="supabase-client.js?v=22"></script>
-  <script src="admin.js?v=22"></script>
+  <script src="supabase-client.js?v=23"></script>
+  <script src="admin.js?v=23"></script>
 </body>
 </html>
