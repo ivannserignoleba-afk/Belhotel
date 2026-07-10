@@ -1126,49 +1126,67 @@ document.addEventListener('DOMContentLoaded', async () => {
     return point.type === 'room' ? `Chambre ${point.label.trim()}` : point.label.trim();
   }
 
-  // Carte imprimable 800x1080 : bandeau BELHOTEL, QR orange, libellé
+  // Carte imprimable 900x1240 : fond orange pleine page, marque en haut,
+  // libellé en grand, QR dans une carte blanche arrondie (style affiche)
+  const QR_CARD_BG = '#b23c0a';
+
+  function roundedRect(context, x, y, width, height, radius) {
+    context.beginPath();
+    context.moveTo(x + radius, y);
+    context.arcTo(x + width, y, x + width, y + height, radius);
+    context.arcTo(x + width, y + height, x, y + height, radius);
+    context.arcTo(x, y + height, x, y, radius);
+    context.arcTo(x, y, x + width, y, radius);
+    context.closePath();
+  }
+
   async function buildQrCard(point) {
+    await document.fonts.ready;
+
     const qrCanvas = document.createElement('canvas');
     await QRCode.toCanvas(qrCanvas, qrUrl(point), {
-      width: 560,
-      margin: 1,
+      width: 520,
+      margin: 0,
       errorCorrectionLevel: 'H',
       color: { dark: QR_ORANGE, light: '#ffffff' },
     });
 
     const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 1080;
+    canvas.width = 900;
+    canvas.height = 1240;
     const context = canvas.getContext('2d');
 
-    // Fond blanc + cadre orange
-    context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, 800, 1080);
-    context.strokeStyle = QR_ORANGE;
-    context.lineWidth = 10;
-    context.strokeRect(5, 5, 790, 1070);
+    // Fond orange pleine page
+    context.fillStyle = QR_CARD_BG;
+    context.fillRect(0, 0, 900, 1240);
 
-    // Bandeau BELHOTEL
-    context.fillStyle = QR_ORANGE;
-    context.fillRect(10, 10, 780, 150);
-    context.fillStyle = '#ffffff';
-    context.font = '800 62px Arial, sans-serif';
     context.textAlign = 'center';
-    context.fillText('B E L H O T E L', 400, 105);
 
-    // QR code
-    context.drawImage(qrCanvas, 120, 220, 560, 560);
+    // Marque
+    context.fillStyle = '#ffffff';
+    context.font = "800 46px Poppins, Arial, sans-serif";
+    context.fillText('B E L H O T E L', 450, 305);
 
-    // Libellé + instruction
-    context.fillStyle = '#2b2018';
-    context.font = '800 46px Arial, sans-serif';
-    context.fillText(qrDisplayName(point), 400, 880);
-    context.fillStyle = '#8a7a6d';
-    context.font = '600 30px Arial, sans-serif';
-    context.fillText('Scannez pour commander', 400, 940);
-    context.fillStyle = QR_ORANGE;
-    context.font = '700 26px Arial, sans-serif';
-    context.fillText('Restaurant · Bar · Service en chambre', 400, 995);
+    // Libellé en grand (réduit automatiquement s'il est long)
+    const label = qrDisplayName(point).toUpperCase();
+    let fontSize = 96;
+    context.font = `800 ${fontSize}px Poppins, Arial, sans-serif`;
+    while (context.measureText(label).width > 760 && fontSize > 38) {
+      fontSize -= 4;
+      context.font = `800 ${fontSize}px Poppins, Arial, sans-serif`;
+    }
+    context.fillText(label, 450, 440);
+
+    // Carte blanche arrondie + QR
+    roundedRect(context, 140, 505, 620, 620, 44);
+    context.fillStyle = '#ffffff';
+    context.fill();
+    context.drawImage(qrCanvas, 190, 555, 520, 520);
+
+    // Consigne
+    context.fillStyle = 'rgba(255,255,255,0.82)';
+    context.font = "600 36px Inter, Arial, sans-serif";
+    context.fillText('Scannez pour commander', 450, 1195);
 
     return canvas;
   }
@@ -1264,6 +1282,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <span class="qr-print-brand">BELHOTEL</span>
         <strong class="qr-print-label">${point.label.trim().toUpperCase()}</strong>
         <canvas></canvas>
+        <p class="qr-print-hint">Scannez pour commander</p>
         <button type="button" class="qr-toggle qr-dl">Télécharger</button>
       `;
       QRCode.toCanvas(card.querySelector('canvas'), qrUrl(point), {
@@ -1319,7 +1338,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const win = window.open('', '_blank');
     if (!win) { alert('Autorisez les fenêtres pop-up pour imprimer.'); return; }
     win.document.write(`<!DOCTYPE html><html lang="fr"><head><title>QR codes Belhotel</title>
-      <style>body{margin:0;padding:0.4cm;display:flex;flex-wrap:wrap;gap:0.4cm}img{width:8.6cm;page-break-inside:avoid}</style>
+      <style>
+        body { margin: 0; }
+        img { display: block; width: 100%; max-height: 100vh; object-fit: contain; page-break-after: always; }
+        img:last-child { page-break-after: auto; }
+      </style>
       </head><body>${images.join('')}</body></html>`);
     win.document.close();
     win.focus();
