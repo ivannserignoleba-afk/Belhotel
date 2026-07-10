@@ -8,7 +8,7 @@ import { Badge, Card, EmptyState, Field, GhostBtn, Modal, PrimaryBtn, inputCls, 
 
 const EMPTY_FORM = { name: '', description: '', price: '', status: 'available' };
 
-export default function RoomsPanel() {
+export default function RoomsPanel({ readOnly = false }) {
   const [rooms, setRooms] = useState(null);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null); // id de la chambre en édition
@@ -97,9 +97,11 @@ export default function RoomsPanel() {
 
   return (
     <div>
-      <div className="mb-4 flex justify-end">
-        <PrimaryBtn onClick={openAdd}>+ Ajouter une chambre</PrimaryBtn>
-      </div>
+      {!readOnly ? (
+        <div className="mb-4 flex justify-end">
+          <PrimaryBtn onClick={openAdd}>+ Ajouter une chambre</PrimaryBtn>
+        </div>
+      ) : null}
 
       <Card>
         <h2 className="mb-4 font-heading text-base font-bold">Chambres enregistrées</h2>
@@ -130,15 +132,17 @@ export default function RoomsPanel() {
                       <p className="font-bold text-brand-deep">{formatPrice(room.price)} / nuit</p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <GhostBtn onClick={() => openEdit(room)}>Modifier</GhostBtn>
-                    <GhostBtn green onClick={() => toggleStatus(room)}>
-                      {available ? 'Rendre indisponible' : 'Rendre disponible'}
-                    </GhostBtn>
-                    <GhostBtn danger onClick={() => remove(room)}>
-                      Supprimer
-                    </GhostBtn>
-                  </div>
+                  {!readOnly ? (
+                    <div className="flex flex-wrap gap-2">
+                      <GhostBtn onClick={() => openEdit(room)}>Modifier</GhostBtn>
+                      <GhostBtn green onClick={() => toggleStatus(room)}>
+                        {available ? 'Rendre indisponible' : 'Rendre disponible'}
+                      </GhostBtn>
+                      <GhostBtn danger onClick={() => remove(room)}>
+                        Supprimer
+                      </GhostBtn>
+                    </div>
+                  ) : null}
                 </article>
               );
             })}

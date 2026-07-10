@@ -9,7 +9,7 @@ import OrdersBoard from '../../components/admin/OrdersBoard';
 import RequestsBoard from '../../components/admin/RequestsBoard';
 import RoomsPanel from '../../components/admin/RoomsPanel';
 import MenuPanel from '../../components/admin/MenuPanel';
-import StockPanel from '../../components/admin/StockPanel';
+import AuditPanel from '../../components/admin/AuditPanel';
 import StaffPanel from '../../components/admin/StaffPanel';
 import SettingsPanel from '../../components/admin/SettingsPanel';
 import StatsPanel from '../../components/admin/StatsPanel';
@@ -54,6 +54,16 @@ const ICONS = {
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   ),
+  audit: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]">
+      <path d="M8 6h13" />
+      <path d="M8 12h13" />
+      <path d="M8 18h13" />
+      <path d="M3 6h.01" />
+      <path d="M3 12h.01" />
+      <path d="M3 18h.01" />
+    </svg>
+  ),
   settings: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]">
       <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
@@ -65,23 +75,23 @@ const ICONS = {
 const SECTIONS = {
   overview: { title: 'Aperçu', subtitle: 'Vue d’ensemble du complexe Belhotel' },
   staff: { title: 'Personnel', subtitle: 'Gérez les comptes de votre équipe' },
+  audit: { title: 'Audit', subtitle: 'Tout ce qui se passe sur la plateforme : qui, quoi, quand' },
   settings: { title: 'Réglages', subtitle: 'Paramètres du site et des réservations' },
   'orders-rooms': { title: 'Commandes des chambres', subtitle: 'Commandes reçues depuis les QR codes des chambres' },
   requests: { title: 'Demandes de service', subtitle: 'Serviettes, climatisation, ménage...' },
   rooms: { title: 'Chambres', subtitle: 'Gérez les chambres de l’hôtel' },
   'qr-room': { title: 'QR codes des chambres', subtitle: 'Créez et imprimez les QR codes à placer dans les chambres' },
   'orders-resto': { title: 'Commandes', subtitle: 'Commandes des tables et des chambres en temps réel' },
-  restaurant: { title: 'Menus du restaurant', subtitle: 'Gérez les cartes Standard, VIP et VVIP' },
-  'stock-resto': { title: 'Stock du restaurant', subtitle: 'Quantités disponibles des plats' },
+  restaurant: { title: 'Menus du restaurant', subtitle: 'Cartes, prix et stock des plats' },
   'qr-table': { title: 'QR codes des tables', subtitle: 'Créez et imprimez les QR codes des tables' },
   'orders-bar': { title: 'Commandes', subtitle: 'Commandes des salons et des chambres en temps réel' },
-  bar: { title: 'Carte du bar', subtitle: 'Gérez les boissons du bar' },
-  'stock-bar': { title: 'Stock du bar', subtitle: 'Quantités disponibles des boissons' },
+  bar: { title: 'Carte du bar', subtitle: 'Boissons, prix et stock du bar' },
   'qr-salon': { title: 'QR codes des salons', subtitle: 'Créez et imprimez les QR codes des salons' },
 };
 
 const NAV_LABELS = {
   overview: 'Statistiques',
+  audit: 'Audit',
   staff: 'Équipe',
   settings: 'Réglages',
   'orders-rooms': 'Commandes',
@@ -90,19 +100,18 @@ const NAV_LABELS = {
   'qr-room': 'QR codes',
   'orders-resto': 'Commandes',
   restaurant: 'Menus',
-  'stock-resto': 'Stock',
   'qr-table': 'QR codes',
   'orders-bar': 'Commandes',
   bar: 'Carte',
-  'stock-bar': 'Stock',
   'qr-salon': 'QR codes',
 };
 
 const TOP_SECTIONS = [
   { key: 'stats', label: 'Stats', icon: 'overview', items: ['overview'] },
+  { key: 'audit', label: 'Audit', icon: 'audit', items: ['audit'] },
   { key: 'hotel', label: 'Hôtel', icon: 'bed', items: ['orders-rooms', 'requests', 'rooms', 'qr-room'] },
-  { key: 'restaurant', label: 'Restaurant', icon: 'utensils', items: ['orders-resto', 'restaurant', 'stock-resto', 'qr-table'] },
-  { key: 'bar', label: 'Bar', icon: 'wine', items: ['orders-bar', 'bar', 'stock-bar', 'qr-salon'] },
+  { key: 'restaurant', label: 'Restaurant', icon: 'utensils', items: ['orders-resto', 'restaurant', 'qr-table'] },
+  { key: 'bar', label: 'Bar', icon: 'wine', items: ['orders-bar', 'bar', 'qr-salon'] },
   { key: 'equipe', label: 'Équipe', icon: 'users', items: ['staff'] },
   { key: 'reglages', label: 'Réglages', icon: 'settings', items: ['settings'] },
 ];
@@ -110,8 +119,8 @@ const TOP_SECTIONS = [
 const ROLE_SECTIONS = {
   superadmin: Object.keys(SECTIONS),
   reception: ['orders-rooms', 'requests', 'rooms', 'qr-room'],
-  resto: ['orders-resto', 'restaurant', 'stock-resto', 'qr-table'],
-  bar: ['orders-bar', 'bar', 'stock-bar', 'qr-salon'],
+  resto: ['orders-resto', 'restaurant', 'qr-table'],
+  bar: ['orders-bar', 'bar', 'qr-salon'],
   serveur: ['orders-resto', 'orders-bar'],
 };
 
@@ -197,8 +206,8 @@ export default function AdminPage() {
   useEffect(() => {
     if (!staff) return;
     const targets = [];
-    if (sections.includes('stock-resto')) targets.push(['stock-resto', 'restaurant_menu']);
-    if (sections.includes('stock-bar')) targets.push(['stock-bar', 'bar_menu']);
+    if (sections.includes('restaurant')) targets.push(['restaurant', 'restaurant_menu']);
+    if (sections.includes('bar')) targets.push(['bar', 'bar_menu']);
     if (!targets.length) return;
     (async () => {
       const lowNames = [];
@@ -315,15 +324,17 @@ export default function AdminPage() {
 
         {/* Panneaux */}
         {section === 'overview' ? <StatsPanel refreshTick={refreshTick} /> : null}
+        {section === 'audit' ? <AuditPanel refreshTick={refreshTick} /> : null}
         {section === 'staff' ? <StaffPanel myEmail={email} /> : null}
         {section === 'settings' ? <SettingsPanel /> : null}
         {['orders-rooms', 'orders-resto', 'orders-bar'].includes(section) ? (
           <OrdersBoard boardKey={section} refreshTick={refreshTick} setBadge={setBadge} />
         ) : null}
         {section === 'requests' ? <RequestsBoard refreshTick={refreshTick} setBadge={setBadge} /> : null}
-        {section === 'rooms' ? <RoomsPanel /> : null}
+        {section === 'rooms' ? <RoomsPanel readOnly={staff.role === 'superadmin'} /> : null}
         {section === 'restaurant' ? (
           <MenuPanel
+            readOnly={staff.role === 'superadmin'}
             table="restaurant_menu"
             itemLabel="plat"
             listTitle="Plats du restaurant"
@@ -336,6 +347,7 @@ export default function AdminPage() {
         ) : null}
         {section === 'bar' ? (
           <MenuPanel
+            readOnly={staff.role === 'superadmin'}
             table="bar_menu"
             itemLabel="boisson"
             listTitle="Boissons du bar"
@@ -346,11 +358,9 @@ export default function AdminPage() {
             ]}
           />
         ) : null}
-        {section === 'stock-resto' ? <StockPanel target="resto" /> : null}
-        {section === 'stock-bar' ? <StockPanel target="bar" /> : null}
-        {section === 'qr-room' ? <QrPanel scope="room" /> : null}
-        {section === 'qr-table' ? <QrPanel scope="table" /> : null}
-        {section === 'qr-salon' ? <QrPanel scope="salon" /> : null}
+        {section === 'qr-room' ? <QrPanel scope="room" readOnly={staff.role === 'superadmin'} /> : null}
+        {section === 'qr-table' ? <QrPanel scope="table" readOnly={staff.role === 'superadmin'} /> : null}
+        {section === 'qr-salon' ? <QrPanel scope="salon" readOnly={staff.role === 'superadmin'} /> : null}
       </main>
     </div>
   );

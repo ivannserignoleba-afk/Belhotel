@@ -27,9 +27,19 @@ module.exports = {
           from: { transform: 'scale(1)' },
           to: { transform: 'scale(1.09)' },
         },
+        modalin: {
+          from: { opacity: '0', transform: 'translateY(16px) scale(0.96)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        fadein: {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
       },
       animation: {
         kenburns: 'kenburns 9s ease-out forwards',
+        modalin: 'modalin 0.25s ease-out',
+        fadein: 'fadein 0.2s ease-out',
       },
     },
   },

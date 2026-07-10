@@ -6,25 +6,29 @@ export function Modal({ open, onClose, title, children, wide = false }) {
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-brand-night/55 p-4"
+      className="fixed inset-0 z-[90] grid animate-fadein place-items-center overflow-y-auto bg-brand-night/60 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className={`max-h-[92vh] w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl`}
+        className={`w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} animate-modalin overflow-hidden rounded-3xl bg-white shadow-[0_30px_80px_rgba(24,14,8,0.45)] ring-1 ring-black/5`}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold">{title}</h2>
+        {/* Bandeau dégradé */}
+        <div className="flex items-center justify-between gap-4 bg-gradient-to-r from-brand to-brand-deep px-6 py-4 text-white">
+          <div className="flex items-center gap-3">
+            <span className="hidden h-8 w-1 rounded-full bg-white/60 sm:block" />
+            <h2 className="font-heading text-lg font-bold">{title}</h2>
+          </div>
           <button
             type="button"
             aria-label="Fermer"
             onClick={onClose}
-            className="grid h-9 w-9 place-items-center rounded-full bg-brand-soft text-lg text-brand-ink hover:bg-brand-pale"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/15 text-xl text-white transition hover:rotate-90 hover:bg-white/30"
           >
             ×
           </button>
         </div>
-        {children}
+        <div className="max-h-[75vh] overflow-y-auto p-6">{children}</div>
       </div>
     </div>
   );

@@ -21,7 +21,7 @@ function pointNumber(point) {
 }
 
 // ----- Mode compteur : Table 1..N / Salon 1..N -----
-function BulkQr({ type }) {
+function BulkQr({ type, readOnly = false }) {
   const base = type === 'table' ? 'Table' : 'Salon';
   const noun = type === 'table' ? 'tables' : 'salons';
   const [points, setPoints] = useState(null);
@@ -70,23 +70,27 @@ function BulkQr({ type }) {
         <Card className="flex items-center gap-5 !p-4">
           <span className="text-[0.78rem] font-bold uppercase tracking-wider text-brand-muted">Nombre de {noun}</span>
           <div className="flex items-center gap-3.5">
-            <button
-              type="button"
-              aria-label="Retirer"
-              onClick={removeLast}
-              className="grid h-11 w-11 place-items-center rounded-full border border-brand-line bg-brand-soft text-xl hover:border-brand-dark hover:text-brand-deep"
-            >
-              −
-            </button>
+            {!readOnly ? (
+              <button
+                type="button"
+                aria-label="Retirer"
+                onClick={removeLast}
+                className="grid h-11 w-11 place-items-center rounded-full border border-brand-line bg-brand-soft text-xl hover:border-brand-dark hover:text-brand-deep"
+              >
+                −
+              </button>
+            ) : null}
             <strong className="min-w-[2ch] text-center font-heading text-2xl">{actives.length}</strong>
-            <button
-              type="button"
-              aria-label="Ajouter"
-              onClick={add}
-              className="grid h-11 w-11 place-items-center rounded-full border border-brand-line bg-brand-soft text-xl hover:border-brand-dark hover:text-brand-deep"
-            >
-              +
-            </button>
+            {!readOnly ? (
+              <button
+                type="button"
+                aria-label="Ajouter"
+                onClick={add}
+                className="grid h-11 w-11 place-items-center rounded-full border border-brand-line bg-brand-soft text-xl hover:border-brand-dark hover:text-brand-deep"
+              >
+                +
+              </button>
+            ) : null}
           </div>
         </Card>
         <PrimaryBtn disabled={busy || !actives.length} onClick={printAll}>
@@ -129,7 +133,7 @@ function BulkQr({ type }) {
 }
 
 // ----- Mode chambres : création une par une -----
-function RoomQr() {
+function RoomQr({ readOnly = false }) {
   const [points, setPoints] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [open, setOpen] = useState(false);
@@ -188,9 +192,11 @@ function RoomQr() {
 
   return (
     <div>
-      <div className="mb-4 flex justify-end">
-        <PrimaryBtn onClick={() => setOpen(true)}>+ Créer un QR code</PrimaryBtn>
-      </div>
+      {!readOnly ? (
+        <div className="mb-4 flex justify-end">
+          <PrimaryBtn onClick={() => setOpen(true)}>+ Créer un QR code</PrimaryBtn>
+        </div>
+      ) : null}
 
       {points === null ? (
         <EmptyState>Chargement...</EmptyState>
@@ -216,20 +222,24 @@ function RoomQr() {
                 >
                   Télécharger
                 </button>
-                <button
-                  type="button"
-                  onClick={() => toggle(point)}
-                  className="rounded-lg border border-white/40 px-3 py-2 text-[0.72rem] font-bold uppercase tracking-wide text-white hover:bg-white/10"
-                >
-                  {point.is_active ? 'Désactiver' : 'Activer'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => remove(point)}
-                  className="rounded-lg border border-white/40 px-3 py-2 text-[0.72rem] font-bold uppercase tracking-wide text-white hover:bg-red-500/30"
-                >
-                  Supprimer
-                </button>
+                {!readOnly ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => toggle(point)}
+                      className="rounded-lg border border-white/40 px-3 py-2 text-[0.72rem] font-bold uppercase tracking-wide text-white hover:bg-white/10"
+                    >
+                      {point.is_active ? 'Désactiver' : 'Activer'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => remove(point)}
+                      className="rounded-lg border border-white/40 px-3 py-2 text-[0.72rem] font-bold uppercase tracking-wide text-white hover:bg-red-500/30"
+                    >
+                      Supprimer
+                    </button>
+                  </>
+                ) : null}
               </div>
             </div>
           ))}
@@ -261,6 +271,6 @@ function RoomQr() {
   );
 }
 
-export default function QrPanel({ scope }) {
-  return scope === 'room' ? <RoomQr /> : <BulkQr type={scope} />;
+export default function QrPanel({ scope, readOnly = false }) {
+  return scope === 'room' ? <RoomQr readOnly={readOnly} /> : <BulkQr type={scope} readOnly={readOnly} />;
 }
