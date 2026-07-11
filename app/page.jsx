@@ -41,6 +41,10 @@ const SLIDES = [
   },
 ];
 
+const DEFAULT_RESTAURANT_IMG =
+  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=80';
+const DEFAULT_BAR_IMG = 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=1000&q=80';
+
 const HIGHLIGHTS = [
   {
     title: 'Chambres confortables',
@@ -82,6 +86,8 @@ export default function HomePage() {
   const [slide, setSlide] = useState(0);
   const [rooms, setRooms] = useState(null);
   const [waNumber, setWaNumber] = useState(FALLBACK_WHATSAPP);
+  const [restaurantImg, setRestaurantImg] = useState(DEFAULT_RESTAURANT_IMG);
+  const [barImg, setBarImg] = useState(DEFAULT_BAR_IMG);
 
   useEffect(() => {
     const timer = setInterval(() => setSlide((current) => (current + 1) % SLIDES.length), 6000);
@@ -90,6 +96,8 @@ export default function HomePage() {
 
   useEffect(() => {
     getSetting('whatsapp_number', FALLBACK_WHATSAPP).then(setWaNumber).catch(() => {});
+    getSetting('home_restaurant_image', DEFAULT_RESTAURANT_IMG).then(setRestaurantImg).catch(() => {});
+    getSetting('home_bar_image', DEFAULT_BAR_IMG).then(setBarImg).catch(() => {});
     db.from('rooms')
       .select('*')
       .eq('status', 'available')
@@ -209,7 +217,7 @@ export default function HomePage() {
         <section className="mt-16 grid overflow-hidden rounded-3xl border border-brand-line bg-white shadow-[0_10px_30px_rgba(194,65,12,0.08)] md:grid-cols-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=80"
+            src={restaurantImg}
             alt="Le restaurant du Belhotel"
             loading="lazy"
             className="h-full min-h-[260px] w-full object-cover"
@@ -247,7 +255,7 @@ export default function HomePage() {
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=1000&q=80"
+            src={barImg}
             alt="Le bar lounge du Belhotel"
             loading="lazy"
             className="order-1 h-full min-h-[260px] w-full object-cover md:order-2"
