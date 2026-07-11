@@ -170,9 +170,9 @@ export default function StaffPanel({ myEmail }) {
             return (
               <article
                 key={member.id}
-                className="flex min-w-0 flex-wrap items-center justify-between gap-4 rounded-2xl border border-brand-line bg-white p-4 shadow-sm transition hover:shadow-md"
+                className="rounded-2xl border border-brand-line bg-white p-4 shadow-sm transition hover:shadow-md"
               >
-                <div className="flex min-w-0 flex-1 items-center gap-3.5">
+                <div className="flex items-center gap-3.5">
                   <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-dark text-lg font-extrabold text-white">
                     {(member.full_name || member.email).trim().charAt(0).toUpperCase()}
                   </span>
@@ -188,9 +188,9 @@ export default function StaffPanel({ myEmail }) {
                   </div>
                 </div>
                 {isMe ? (
-                  <span className="text-[0.85rem] text-brand-muted">C’est vous</span>
+                  <p className="mt-3 text-[0.85rem] text-brand-muted">C’est vous</p>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     <GhostBtn onClick={() => openEdit(member)}>Modifier</GhostBtn>
                     <GhostBtn green={!member.is_active} onClick={() => toggleActive(member)}>
                       {member.is_active ? 'Désactiver' : 'Réactiver'}

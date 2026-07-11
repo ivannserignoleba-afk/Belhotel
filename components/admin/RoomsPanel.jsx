@@ -123,11 +123,8 @@ export default function RoomsPanel({ readOnly = false }) {
             {rooms.map((room) => {
               const available = room.status === 'available';
               return (
-                <article
-                  key={room.id}
-                  className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-line bg-brand-soft p-3.5"
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                <article key={room.id} className="rounded-xl border border-brand-line bg-brand-soft p-3.5">
+                  <div className="flex items-start gap-3">
                     {room.image_urls?.[0] ? (
                       <div className="relative shrink-0">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -147,11 +144,11 @@ export default function RoomsPanel({ readOnly = false }) {
                         </Badge>
                       </div>
                       <p className="truncate text-[0.92rem] text-brand-muted">{room.description || 'Aucune description.'}</p>
-                      <p className="font-bold text-brand-deep">{formatPrice(room.price)} / nuit</p>
+                      <p className="whitespace-nowrap font-bold text-brand-deep">{formatPrice(room.price)} / nuit</p>
                     </div>
                   </div>
                   {!readOnly ? (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       <GhostBtn onClick={() => openEdit(room)}>Modifier</GhostBtn>
                       <GhostBtn green onClick={() => toggleStatus(room)}>
                         {available ? 'Rendre indisponible' : 'Rendre disponible'}

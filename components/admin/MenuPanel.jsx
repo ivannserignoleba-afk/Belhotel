@@ -129,11 +129,8 @@ export default function MenuPanel({ table, itemLabel, categoryOptions, listTitle
         ) : (
           <div className="grid gap-3">
             {items.map((item) => (
-              <article
-                key={item.id}
-                className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-line bg-brand-soft p-3.5"
-              >
-                <div className="flex min-w-0 flex-1 items-center gap-3">
+              <article key={item.id} className="rounded-xl border border-brand-line bg-brand-soft p-3.5">
+                <div className="flex items-start gap-3">
                   {item.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={item.image_url} alt="" className="h-16 w-16 shrink-0 rounded-lg object-cover" />
@@ -145,11 +142,11 @@ export default function MenuPanel({ table, itemLabel, categoryOptions, listTitle
                       <StockBadge stock={item.stock_qty} />
                     </div>
                     <p className="truncate text-[0.92rem] text-brand-muted">{item.description || 'Aucune description.'}</p>
-                    <p className="font-bold text-brand-deep">{formatPrice(item.price)}</p>
+                    <p className="whitespace-nowrap font-bold text-brand-deep">{formatPrice(item.price)}</p>
                   </div>
                 </div>
                 {!readOnly ? (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     <GhostBtn onClick={() => openEdit(item)}>Modifier</GhostBtn>
                     <GhostBtn danger onClick={() => remove(item)}>
                       Supprimer
