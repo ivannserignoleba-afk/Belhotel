@@ -255,7 +255,7 @@ export default function AdminPage() {
     const entersReception = isInsert && n.status === 'reception' && n.origin_type === 'room';
     const entersResto = n.target === 'resto' && n.status === 'sent';
     const entersBar = n.target === 'bar' && n.status === 'sent';
-    switch (staff.role) {
+    switch (staff?.role) {
       case 'reception':
         return entersReception;
       case 'resto':
@@ -271,7 +271,7 @@ export default function AdminPage() {
     }
   }
 
-  const canSeeRequests = ['reception', 'superadmin'].includes(staff.role);
+  const canSeeRequests = ['reception', 'superadmin'].includes(staff?.role);
 
   // Temps réel : les nouveaux évènements rafraîchissent les tableaux
   const channelRef = useRef(null);
