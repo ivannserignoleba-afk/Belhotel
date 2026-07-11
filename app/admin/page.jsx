@@ -232,7 +232,7 @@ export default function AdminPage() {
 
   async function enableAlerts() {
     initSound();
-    beep(1);
+    beep();
     try {
       if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
         await Notification.requestPermission();
@@ -244,6 +244,35 @@ export default function AdminPage() {
     toastSuccess('Alertes sonores activées');
   }
 
+  // Une commande « entre » sur mon tableau (donc doit sonner chez MOI) ?
+  // - Réception : nouvelle commande d'une chambre (à traiter)
+  // - Cuisine (resto) : commande qui atteint le statut « envoyée » côté resto
+  //   (table directe, ou chambre transférée par la réception)
+  // - Bar : idem côté bar. Le statut « sent » n'est atteint que par ces arrivées.
+  function orderConcernsMe(payload) {
+    const n = payload.new || {};
+    const isInsert = payload.eventType === 'INSERT';
+    const entersReception = isInsert && n.status === 'reception' && n.origin_type === 'room';
+    const entersResto = n.target === 'resto' && n.status === 'sent';
+    const entersBar = n.target === 'bar' && n.status === 'sent';
+    switch (staff.role) {
+      case 'reception':
+        return entersReception;
+      case 'resto':
+        return entersResto;
+      case 'bar':
+        return entersBar;
+      case 'serveur':
+        return entersResto || entersBar;
+      case 'superadmin':
+        return entersReception || entersResto || entersBar;
+      default:
+        return false;
+    }
+  }
+
+  const canSeeRequests = ['reception', 'superadmin'].includes(staff.role);
+
   // Temps réel : les nouveaux évènements rafraîchissent les tableaux
   const channelRef = useRef(null);
   useEffect(() => {
@@ -251,8 +280,8 @@ export default function AdminPage() {
     const channel = db
       .channel('staff-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          beep(3);
+        if (orderConcernsMe(payload)) {
+          beep();
           const origin = (payload.new.origin_type === 'room' ? 'Chambre ' : '') + (payload.new.origin_label || '');
           notify('Nouvelle commande — Belhotel', `${origin} · ${(payload.new.total || 0).toLocaleString('fr-FR')} FCFA`);
           flashTitle('(1) Nouvelle commande — Belhotel');
@@ -260,8 +289,8 @@ export default function AdminPage() {
         setRefreshTick((tick) => tick + 1);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'service_requests' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          beep(3);
+        if (payload.eventType === 'INSERT' && canSeeRequests) {
+          beep();
           notify('Nouvelle demande de service — Belhotel', `Chambre ${payload.new.origin_label || ''} · ${payload.new.category || ''}`);
           flashTitle('(1) Nouvelle demande — Belhotel');
         }
@@ -273,6 +302,7 @@ export default function AdminPage() {
       db.removeChannel(channel);
       channelRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [staff]);
 
   // Alerte stock : badges sur les compartiments Stock + avertissement à l'arrivée
