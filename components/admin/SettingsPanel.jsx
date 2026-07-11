@@ -6,8 +6,8 @@ import { uploadImage } from '../../lib/adminShared';
 import { showError, toastSuccess } from '../../lib/alerts';
 import { Card, Field, inputCls, submitCls } from './ui';
 
-// Réglage d'une image (téléversée, compressée) stockée dans app_settings
-function ImageSetting({ label, settingKey, hint }) {
+// Réglage d'une image (téléversée) stockée dans app_settings
+function ImageSetting({ label, settingKey, hint, folder = 'home', compress = true, preview = 'rect' }) {
   const [url, setUrl] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -24,7 +24,7 @@ function ImageSetting({ label, settingKey, hint }) {
     if (!file) return;
     setBusy(true);
     try {
-      const publicUrl = await uploadImage(file, 'home');
+      const publicUrl = await uploadImage(file, folder, { compress });
       const { error } = await db.from('app_settings').upsert([{ key: settingKey, value: publicUrl }]);
       if (error) throw error;
       setUrl(publicUrl);
@@ -37,20 +37,22 @@ function ImageSetting({ label, settingKey, hint }) {
     }
   }
 
+  const box = preview === 'circle' ? 'h-20 w-20 rounded-full object-contain bg-white p-1' : 'h-20 w-28 rounded-lg object-cover';
+
   return (
     <div>
       <p className="mb-2 text-[0.74rem] font-bold uppercase tracking-wider text-brand-muted">{label}</p>
       <div className="flex items-center gap-3">
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt="" className="h-20 w-28 shrink-0 rounded-lg object-cover" />
+          <img src={url} alt="" className={`shrink-0 border border-brand-line ${box}`} />
         ) : (
-          <div className="grid h-20 w-28 shrink-0 place-items-center rounded-lg bg-brand-soft text-[0.72rem] text-brand-muted">
+          <div className={`grid shrink-0 place-items-center bg-brand-soft text-[0.72rem] text-brand-muted ${preview === 'circle' ? 'h-20 w-20 rounded-full' : 'h-20 w-28 rounded-lg'}`}>
             Aucune
           </div>
         )}
         <label className="cursor-pointer rounded-lg bg-brand-dark px-4 py-2.5 text-[0.76rem] font-bold uppercase tracking-wide text-white hover:bg-brand-deep">
-          {busy ? 'Envoi...' : 'Changer la photo'}
+          {busy ? 'Envoi...' : 'Changer'}
           <input type="file" accept="image/*" className="hidden" onChange={onFile} disabled={busy} />
         </label>
       </div>
@@ -93,6 +95,15 @@ export default function SettingsPanel() {
 
   return (
     <div className="grid max-w-xl gap-4">
+      <Card>
+        <h2 className="mb-1 font-heading text-base font-bold">Logo de l’application</h2>
+        <p className="mb-4 text-[0.9rem] text-brand-muted">
+          Le logo s’affiche dans l’en-tête du site à la place du texte « BELHOTEL ». Choisissez de préférence le logo
+          rond, sur fond transparent ou blanc.
+        </p>
+        <ImageSetting label="Logo" settingKey="logo_url" folder="logo" compress={false} preview="circle" />
+      </Card>
+
       <Card>
         <h2 className="mb-1 font-heading text-base font-bold">Numéro WhatsApp de la réception</h2>
         <p className="mb-4 text-[0.9rem] text-brand-muted">

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { getSetting } from '../lib/supabase';
 
 const LINKS = [
   { href: '/', label: 'Accueil' },
@@ -11,9 +12,22 @@ const LINKS = [
 ];
 
 export function Brand({ className = '' }) {
+  const [logo, setLogo] = useState('');
+
+  useEffect(() => {
+    getSetting('logo_url', '').then(setLogo).catch(() => {});
+  }, []);
+
   return (
-    <Link href="/" className={`font-heading text-xl font-extrabold tracking-[0.2em] ${className}`}>
-      BEL<span className="text-brand">HOTEL</span>
+    <Link href="/" className={`inline-flex items-center ${className}`} aria-label="Belhotel">
+      {logo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logo} alt="Belhotel" className="h-11 w-11 rounded-full object-contain" />
+      ) : (
+        <span className="font-heading text-xl font-extrabold tracking-[0.2em]">
+          BEL<span className="text-brand">HOTEL</span>
+        </span>
+      )}
     </Link>
   );
 }
