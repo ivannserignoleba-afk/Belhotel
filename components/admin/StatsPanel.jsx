@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { db, formatPrice } from '../../lib/supabase';
+import { showError } from '../../lib/alerts';
 import { Card, Chip, EmptyState } from './ui';
 
 const PERIODS = [
@@ -140,34 +141,87 @@ export default function StatsPanel({ refreshTick }) {
     },
   ];
 
-  function exportCsv() {
-    const STATUS_FR = {
-      reception: 'À traiter',
-      sent: 'Envoyée',
-      preparing: 'En préparation',
-      delivered: 'Livrée',
-      cancelled: 'Annulée',
-    };
-    const rows = [['Date', 'Heure', 'Origine', 'Section', 'Statut', 'Total (FCFA)', 'Articles']];
-    (data?.orders || []).forEach((order) => {
-      const date = new Date(order.created_at);
-      rows.push([
-        date.toLocaleDateString('fr-FR'),
-        date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-        (order.origin_type === 'room' ? 'Chambre ' : '') + order.origin_label.trim(),
-        order.target === 'resto' ? 'Restaurant' : 'Bar',
-        STATUS_FR[order.status] || order.status,
-        order.total || 0,
-        (order.order_items || []).map((line) => `${line.qty}x ${line.item_name}`).join(' + '),
-      ]);
-    });
-    const csv = rows.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `commandes-belhotel-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+  const [exporting, setExporting] = useState(false);
+
+  async function exportExcel() {
+    if (!data || !data.orders.length) return;
+    setExporting(true);
+    try {
+      const XLSX = await import('xlsx');
+      const STATUS_FR = {
+        reception: 'À traiter',
+        sent: 'Envoyée',
+        preparing: 'En préparation',
+        delivered: 'Livrée',
+        cancelled: 'Annulée',
+      };
+      const periodLabel = PERIODS.find(([value]) => value === period)[1];
+      const wb = XLSX.utils.book_new();
+
+      // 1) Résumé
+      const resume = [
+        ['BELHOTEL — Statistiques'],
+        ['Période', periodLabel],
+        ['Généré le', new Date().toLocaleString('fr-FR')],
+        [],
+        ['Chiffre d’affaires total (FCFA)', revenue],
+        ['Nombre de commandes', valid.length],
+        ['Ticket moyen (FCFA)', average],
+        [],
+        ['CA Restaurant (FCFA)', bySection.resto.revenue],
+        ['Commandes Restaurant', bySection.resto.count],
+        ['CA Bar (FCFA)', bySection.bar.revenue],
+        ['Commandes Bar', bySection.bar.count],
+        ['CA depuis les chambres (FCFA)', roomOrders.revenue],
+        ['Commandes depuis les chambres', roomOrders.count],
+        [],
+        ['Meilleur jour', bestDay ? new Date(bestDay.day).toLocaleDateString('fr-FR') : '—', bestDay ? bestDay.total : ''],
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resume), 'Résumé');
+
+      // 2) Revenu par jour
+      const parJour = [['Date', 'Nombre de commandes', 'Chiffre d’affaires (FCFA)']];
+      const dayCounts = new Map();
+      valid.forEach((order) => {
+        const day = order.created_at.slice(0, 10);
+        dayCounts.set(day, (dayCounts.get(day) || 0) + 1);
+      });
+      [...byDay.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .forEach(([day, total]) => {
+          parJour.push([new Date(day).toLocaleDateString('fr-FR'), dayCounts.get(day) || 0, total]);
+        });
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(parJour), 'Par jour');
+
+      // 3) Par article
+      const parArticle = [['Article', 'Quantité vendue', 'Chiffre d’affaires (FCFA)']];
+      [...itemTotals.entries()]
+        .sort((a, b) => b[1].revenue - a[1].revenue)
+        .forEach(([name, entry]) => parArticle.push([name, entry.qty, entry.revenue]));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(parArticle), 'Par article');
+
+      // 4) Détail des commandes
+      const detail = [['Date', 'Heure', 'Origine', 'Section', 'Statut', 'Total (FCFA)', 'Articles']];
+      data.orders.forEach((order) => {
+        const date = new Date(order.created_at);
+        detail.push([
+          date.toLocaleDateString('fr-FR'),
+          date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+          (order.origin_type === 'room' ? 'Chambre ' : '') + order.origin_label.trim(),
+          order.target === 'resto' ? 'Restaurant' : 'Bar',
+          STATUS_FR[order.status] || order.status,
+          order.total || 0,
+          (order.order_items || []).map((line) => `${line.qty}x ${line.item_name}`).join(' + '),
+        ]);
+      });
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detail), 'Détail commandes');
+
+      XLSX.writeFile(wb, `statistiques-belhotel-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    } catch (error) {
+      showError('Export impossible : ' + error.message);
+    } finally {
+      setExporting(false);
+    }
   }
 
   return (
@@ -180,16 +234,16 @@ export default function StatsPanel({ refreshTick }) {
         ))}
         <button
           type="button"
-          onClick={exportCsv}
-          disabled={!data || !data.orders.length}
-          className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-full border border-brand-line bg-white px-4 py-2 text-[0.82rem] font-semibold text-brand-ink transition hover:border-brand-dark hover:text-brand-deep disabled:opacity-50"
+          onClick={exportExcel}
+          disabled={!data || !data.orders.length || exporting}
+          className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-full border border-green-600 bg-green-600 px-4 py-2 text-[0.82rem] font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" x2="12" y1="15" y2="3" />
           </svg>
-          Exporter CSV
+          {exporting ? 'Export...' : 'Exporter Excel'}
         </button>
       </div>
 
