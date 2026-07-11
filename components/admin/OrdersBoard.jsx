@@ -150,7 +150,7 @@ export default function OrdersBoard({ boardKey, refreshTick, setBadge }) {
           <p className="text-sm">Les nouvelles commandes apparaîtront ici en temps réel.</p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((order) => {
             const withActions = actionable.includes(order.status);
             const originName = (order.origin_type === 'room' ? 'Chambre ' : '') + order.origin_label.trim();

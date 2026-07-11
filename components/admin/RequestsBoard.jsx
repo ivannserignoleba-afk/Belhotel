@@ -82,12 +82,12 @@ export default function RequestsBoard({ refreshTick, setBadge }) {
           automatiquement.
         </EmptyState>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{active.map((request) => renderCard(request, true))}</div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{active.map((request) => renderCard(request, true))}</div>
       )}
       {done.length ? (
         <>
           <h3 className="mb-3 mt-8 text-brand-muted">Historique récent</h3>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{done.map((request) => renderCard(request, false))}</div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{done.map((request) => renderCard(request, false))}</div>
         </>
       ) : null}
     </div>

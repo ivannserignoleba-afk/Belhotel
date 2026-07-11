@@ -119,7 +119,7 @@ export default function RoomsPanel({ readOnly = false }) {
         ) : rooms.length === 0 ? (
           <EmptyState>Aucune chambre enregistrée.</EmptyState>
         ) : (
-          <div className="grid gap-3">
+          <div className="grid grid-cols-1 gap-3">
             {rooms.map((room) => {
               const available = room.status === 'available';
               return (

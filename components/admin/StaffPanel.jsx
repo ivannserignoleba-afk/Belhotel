@@ -164,7 +164,7 @@ export default function StaffPanel({ myEmail }) {
       {staff === null ? (
         <EmptyState>Chargement...</EmptyState>
       ) : (
-        <div className="grid gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {staff.map((member) => {
             const isMe = member.email === myEmail;
             return (

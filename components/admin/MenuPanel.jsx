@@ -127,7 +127,7 @@ export default function MenuPanel({ table, itemLabel, categoryOptions, listTitle
         ) : items.length === 0 ? (
           <EmptyState>Aucun {itemLabel} enregistré.</EmptyState>
         ) : (
-          <div className="grid gap-3">
+          <div className="grid grid-cols-1 gap-3">
             {items.map((item) => (
               <article key={item.id} className="rounded-xl border border-brand-line bg-brand-soft p-3.5">
                 <div className="flex items-start gap-3">
