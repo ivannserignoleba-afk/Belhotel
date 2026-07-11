@@ -96,12 +96,12 @@ export default function SettingsPanel() {
   return (
     <div className="grid max-w-xl gap-4">
       <Card>
-        <h2 className="mb-1 font-heading text-base font-bold">Logo de l’application</h2>
+        <h2 className="mb-1 font-heading text-base font-bold">Icône de l’application</h2>
         <p className="mb-4 text-[0.9rem] text-brand-muted">
-          Le logo s’affiche dans l’en-tête du site à la place du texte « BELHOTEL ». Choisissez de préférence le logo
-          rond, sur fond transparent ou blanc.
+          C’est l’icône affichée sur l’écran d’accueil quand l’app est installée. Après un changement, prévenez votre
+          prestataire pour qu’elle soit appliquée à l’app installée.
         </p>
-        <ImageSetting label="Logo" settingKey="logo_url" folder="logo" compress={false} preview="circle" />
+        <ImageSetting label="Icône" settingKey="logo_url" folder="logo" compress={false} preview="circle" />
       </Card>
 
       <Card>

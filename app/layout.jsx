@@ -20,6 +20,10 @@ export const metadata = {
     'Belhotel After Work, un complexe hôtelier avec chambres confortables, restaurant savoureux et bar lounge. Réservez directement sur WhatsApp.',
   manifest: '/manifest.json',
   appleWebApp: { capable: true, title: 'Belhotel', statusBarStyle: 'black-translucent' },
+  icons: {
+    icon: '/app-icon.jpg',
+    apple: '/app-icon.jpg',
+  },
 };
 
 export const viewport = {
