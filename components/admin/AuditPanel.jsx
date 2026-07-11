@@ -89,24 +89,24 @@ export default function AuditPanel({ refreshTick }) {
               const meta = ACTION_META[entry.action] || { label: entry.action, tone: 'bg-gray-100 text-gray-600' };
               const actor = entry.actor === 'client' ? 'Un client' : names[entry.actor] || entry.actor;
               return (
-                <div key={entry.id} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-5 py-3.5">
-                  <span className="w-[110px] shrink-0 text-[0.8rem] font-semibold tabular-nums text-brand-muted">
-                    {formatWhen(entry.created_at)}
-                  </span>
-                  <Badge tone={meta.tone}>{meta.label}</Badge>
-                  <Badge>{TABLE_LABELS[entry.table_name] || entry.table_name}</Badge>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[0.95rem]">
-                      <strong>{actor}</strong>
-                      <span className="text-brand-muted"> — </span>
-                      <span className="font-semibold">{(entry.item_label || '').trim()}</span>
-                    </p>
-                    {entry.details ? (
-                      <p className="truncate text-[0.82rem] text-brand-muted" title={entry.details}>
-                        {entry.details}
-                      </p>
-                    ) : null}
+                <div key={entry.id} className="px-4 py-3.5 sm:px-5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge tone={meta.tone}>{meta.label}</Badge>
+                    <Badge>{TABLE_LABELS[entry.table_name] || entry.table_name}</Badge>
+                    <span className="ml-auto shrink-0 text-[0.78rem] font-semibold tabular-nums text-brand-muted">
+                      {formatWhen(entry.created_at)}
+                    </span>
                   </div>
+                  <p className="mt-1.5 text-[0.95rem]">
+                    <strong>{actor}</strong>
+                    <span className="text-brand-muted"> — </span>
+                    <span className="font-semibold">{(entry.item_label || '').trim()}</span>
+                  </p>
+                  {entry.details ? (
+                    <p className="mt-0.5 line-clamp-1 text-[0.82rem] text-brand-muted" title={entry.details}>
+                      {entry.details}
+                    </p>
+                  ) : null}
                 </div>
               );
             })}

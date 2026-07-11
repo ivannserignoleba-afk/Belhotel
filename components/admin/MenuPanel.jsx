@@ -131,16 +131,19 @@ export default function MenuPanel({ table, itemLabel, categoryOptions, listTitle
             {items.map((item) => (
               <article
                 key={item.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-line bg-brand-soft p-3.5"
+                className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-line bg-brand-soft p-3.5"
               >
-                <div className="flex min-w-0 items-center gap-3">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
                   {item.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={item.image_url} alt="" className="h-16 w-16 shrink-0 rounded-lg object-cover" />
                   ) : null}
-                  <div className="min-w-0">
-                    <strong>{item.name}</strong> <Badge>{CATEGORY_LABELS[item.category] || item.category}</Badge>{' '}
-                    <StockBadge stock={item.stock_qty} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <strong>{item.name}</strong>
+                      <Badge>{CATEGORY_LABELS[item.category] || item.category}</Badge>
+                      <StockBadge stock={item.stock_qty} />
+                    </div>
                     <p className="truncate text-[0.92rem] text-brand-muted">{item.description || 'Aucune description.'}</p>
                     <p className="font-bold text-brand-deep">{formatPrice(item.price)}</p>
                   </div>

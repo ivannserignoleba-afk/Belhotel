@@ -170,18 +170,20 @@ export default function StaffPanel({ myEmail }) {
             return (
               <article
                 key={member.id}
-                className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-brand-line bg-white p-4 shadow-sm transition hover:shadow-md"
+                className="flex min-w-0 flex-wrap items-center justify-between gap-4 rounded-2xl border border-brand-line bg-white p-4 shadow-sm transition hover:shadow-md"
               >
-                <div className="flex min-w-0 items-center gap-3.5">
+                <div className="flex min-w-0 flex-1 items-center gap-3.5">
                   <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-dark text-lg font-extrabold text-white">
                     {(member.full_name || member.email).trim().charAt(0).toUpperCase()}
                   </span>
-                  <div className="min-w-0">
-                    <strong>{member.full_name || member.email}</strong>{' '}
-                    <Badge tone={member.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}>
-                      {member.is_active ? 'Actif' : 'Désactivé'}
-                    </Badge>{' '}
-                    <Badge>{ROLE_LABELS[member.role] || member.role}</Badge>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <strong>{member.full_name || member.email}</strong>
+                      <Badge tone={member.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}>
+                        {member.is_active ? 'Actif' : 'Désactivé'}
+                      </Badge>
+                      <Badge>{ROLE_LABELS[member.role] || member.role}</Badge>
+                    </div>
                     <p className="truncate text-[0.92rem] text-brand-muted">{member.email}</p>
                   </div>
                 </div>

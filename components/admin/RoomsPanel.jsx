@@ -125,9 +125,9 @@ export default function RoomsPanel({ readOnly = false }) {
               return (
                 <article
                   key={room.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-line bg-brand-soft p-3.5"
+                  className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-line bg-brand-soft p-3.5"
                 >
-                  <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
                     {room.image_urls?.[0] ? (
                       <div className="relative shrink-0">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -139,11 +139,13 @@ export default function RoomsPanel({ readOnly = false }) {
                         ) : null}
                       </div>
                     ) : null}
-                    <div className="min-w-0">
-                      <strong>{(room.name || '').trim()}</strong>{' '}
-                      <Badge tone={available ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}>
-                        {available ? 'Disponible' : 'Indisponible'}
-                      </Badge>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <strong>{(room.name || '').trim()}</strong>
+                        <Badge tone={available ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}>
+                          {available ? 'Disponible' : 'Indisponible'}
+                        </Badge>
+                      </div>
                       <p className="truncate text-[0.92rem] text-brand-muted">{room.description || 'Aucune description.'}</p>
                       <p className="font-bold text-brand-deep">{formatPrice(room.price)} / nuit</p>
                     </div>

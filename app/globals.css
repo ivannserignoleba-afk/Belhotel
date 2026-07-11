@@ -17,7 +17,7 @@
   h3 {
     @apply font-heading;
   }
-  /* Les mots très longs (emails, URLs) ne débordent jamais */
+  /* Coupe uniquement les mots trop longs (emails, URLs) sans hacher le texte */
   p,
   span,
   strong,
@@ -26,6 +26,6 @@
   h2,
   h3,
   h4 {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 }
