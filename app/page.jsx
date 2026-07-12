@@ -5,8 +5,7 @@ import Link from 'next/link';
 import SiteNav from '../components/SiteNav';
 import SiteFooter from '../components/SiteFooter';
 import CtaBand, { WhatsappLink } from '../components/CtaBand';
-import RoomCard from '../components/RoomCard';
-import { db, getSetting, FALLBACK_WHATSAPP } from '../lib/supabase';
+import { getSetting, FALLBACK_WHATSAPP } from '../lib/supabase';
 
 const SLIDES = [
   {
@@ -41,6 +40,8 @@ const SLIDES = [
   },
 ];
 
+const DEFAULT_HOTEL_IMG =
+  'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1000&q=80';
 const DEFAULT_RESTAURANT_IMG =
   'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=80';
 const DEFAULT_BAR_IMG = 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=1000&q=80';
@@ -84,8 +85,8 @@ const HIGHLIGHTS = [
 
 export default function HomePage() {
   const [slide, setSlide] = useState(0);
-  const [rooms, setRooms] = useState(null);
   const [waNumber, setWaNumber] = useState(FALLBACK_WHATSAPP);
+  const [hotelImg, setHotelImg] = useState(DEFAULT_HOTEL_IMG);
   const [restaurantImg, setRestaurantImg] = useState(DEFAULT_RESTAURANT_IMG);
   const [barImg, setBarImg] = useState(DEFAULT_BAR_IMG);
 
@@ -96,14 +97,9 @@ export default function HomePage() {
 
   useEffect(() => {
     getSetting('whatsapp_number', FALLBACK_WHATSAPP).then(setWaNumber).catch(() => {});
+    getSetting('home_hotel_image', DEFAULT_HOTEL_IMG).then(setHotelImg).catch(() => {});
     getSetting('home_restaurant_image', DEFAULT_RESTAURANT_IMG).then(setRestaurantImg).catch(() => {});
     getSetting('home_bar_image', DEFAULT_BAR_IMG).then(setBarImg).catch(() => {});
-    db.from('rooms')
-      .select('*')
-      .eq('status', 'available')
-      .order('price', { ascending: true })
-      .limit(3)
-      .then(({ data }) => setRooms(data || []));
   }, []);
 
   return (
@@ -188,41 +184,34 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Aperçu des chambres */}
-        <section className="mt-16">
-          <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-[0.25em] text-brand">Nos chambres</p>
-              <h2 className="mt-1 text-2xl font-bold md:text-3xl">Choisissez votre chambre</h2>
-            </div>
-            <Link
-              href="/chambres"
-              className="rounded-lg border border-brand-line px-5 py-3 text-[0.78rem] font-bold uppercase tracking-wider hover:border-brand-dark hover:text-brand-deep"
-            >
-              Voir toutes les chambres
-            </Link>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {rooms === null ? (
-              <p className="text-brand-muted">Chargement des chambres...</p>
-            ) : rooms.length === 0 ? (
-              <p className="text-brand-muted">Nos chambres arrivent bientôt. Contactez-nous sur WhatsApp !</p>
-            ) : (
-              rooms.map((room) => <RoomCard key={room.id} room={room} waNumber={waNumber} />)
-            )}
-          </div>
-        </section>
-
-        {/* Restaurant / Bar */}
+        {/* Hôtel : image + texte (image à gauche) */}
         <section className="mt-16 grid overflow-hidden rounded-3xl border border-brand-line bg-white shadow-[0_10px_30px_rgba(194,65,12,0.08)] md:grid-cols-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={restaurantImg}
-            alt="Le restaurant du Belhotel"
+            src={hotelImg}
+            alt="Les chambres du Belhotel"
             loading="lazy"
             className="h-full min-h-[260px] w-full object-cover"
           />
           <div className="flex flex-col items-start justify-center p-9">
+            <p className="text-sm font-bold uppercase tracking-[0.25em] text-brand">Hôtel</p>
+            <h2 className="mt-2 text-2xl font-bold">Des chambres confortables pour un séjour paisible</h2>
+            <p className="mt-3 text-brand-muted">
+              Climatisation, télévision, literie soignée et ambiance chaleureuse : nos chambres allient confort et
+              tranquillité. Réservez en un clic sur WhatsApp.
+            </p>
+            <Link
+              href="/chambres"
+              className="mt-6 rounded-lg bg-brand-dark px-6 py-3 text-[0.78rem] font-bold uppercase tracking-wider text-white hover:bg-brand-deep"
+            >
+              Voir nos chambres
+            </Link>
+          </div>
+        </section>
+
+        {/* Restaurant : texte + image (image à droite) */}
+        <section className="mt-8 grid overflow-hidden rounded-3xl border border-brand-line bg-white shadow-[0_10px_30px_rgba(194,65,12,0.08)] md:grid-cols-2">
+          <div className="order-2 flex flex-col items-start justify-center p-9 md:order-1">
             <p className="text-sm font-bold uppercase tracking-[0.25em] text-brand">Restaurant</p>
             <h2 className="mt-2 text-2xl font-bold">Une table pour chaque occasion</h2>
             <p className="mt-3 text-brand-muted">
@@ -236,10 +225,25 @@ export default function HomePage() {
               Voir la carte du restaurant
             </Link>
           </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={restaurantImg}
+            alt="Le restaurant du Belhotel"
+            loading="lazy"
+            className="order-1 h-full min-h-[260px] w-full object-cover md:order-2"
+          />
         </section>
 
+        {/* Bar : image + texte (image à gauche) */}
         <section className="mt-8 grid overflow-hidden rounded-3xl border border-brand-line bg-white shadow-[0_10px_30px_rgba(194,65,12,0.08)] md:grid-cols-2">
-          <div className="order-2 flex flex-col items-start justify-center p-9 md:order-1">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={barImg}
+            alt="Le bar lounge du Belhotel"
+            loading="lazy"
+            className="h-full min-h-[260px] w-full object-cover"
+          />
+          <div className="flex flex-col items-start justify-center p-9">
             <p className="text-sm font-bold uppercase tracking-[0.25em] text-brand">Bar Lounge</p>
             <h2 className="mt-2 text-2xl font-bold">L’afterwork comme il se doit</h2>
             <p className="mt-3 text-brand-muted">
@@ -253,13 +257,6 @@ export default function HomePage() {
               Découvrir le bar
             </Link>
           </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={barImg}
-            alt="Le bar lounge du Belhotel"
-            loading="lazy"
-            className="order-1 h-full min-h-[260px] w-full object-cover md:order-2"
-          />
         </section>
       </main>
 

@@ -138,6 +138,11 @@ export default function SettingsPanel() {
         </p>
         <div className="grid gap-5">
           <ImageSetting
+            label="Section Hôtel"
+            settingKey="home_hotel_image"
+            hint="Ex : la photo d’une belle chambre."
+          />
+          <ImageSetting
             label="Section Restaurant"
             settingKey="home_restaurant_image"
             hint="Ex : la photo de la salle avec les tables."
