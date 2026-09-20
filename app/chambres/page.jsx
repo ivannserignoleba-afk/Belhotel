@@ -25,6 +25,14 @@ export default function ChambresPage() {
     return () => clearInterval(timer);
   }, []);
 
+  // On ne télécharge que la photo affichée et la suivante : afficher les
+  // quatre d'un coup faisait charger quatre grandes images avant même le
+  // premier rendu, sur une page vue surtout depuis un téléphone.
+  const [maxLoaded, setMaxLoaded] = useState(1);
+  useEffect(() => {
+    setMaxLoaded((current) => Math.max(current, slide + 1));
+  }, [slide]);
+
   useEffect(() => {
     getSetting('whatsapp_number', FALLBACK_WHATSAPP).then(setWaNumber).catch(() => {});
     db.from('rooms')
@@ -44,9 +52,13 @@ export default function ChambresPage() {
             className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ${
               index === slide ? 'animate-kenburns opacity-100' : 'opacity-0'
             }`}
-            style={{
-              backgroundImage: `linear-gradient(rgba(30,18,10,0.5), rgba(30,18,10,0.68)), url('${image}')`,
-            }}
+            style={
+              index <= maxLoaded
+                ? {
+                    backgroundImage: `linear-gradient(rgba(30,18,10,0.5), rgba(30,18,10,0.68)), url('${image}')`,
+                  }
+                : undefined
+            }
           />
         ))}
         <div className="relative z-10 m-auto max-w-3xl py-14 text-center">

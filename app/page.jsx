@@ -95,6 +95,14 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
+  // On ne télécharge que la photo affichée et la suivante : afficher les
+  // quatre d'un coup faisait charger quatre grandes images avant même le
+  // premier rendu, sur une page vue surtout depuis un téléphone.
+  const [maxLoaded, setMaxLoaded] = useState(1);
+  useEffect(() => {
+    setMaxLoaded((current) => Math.max(current, slide + 1));
+  }, [slide]);
+
   useEffect(() => {
     getSetting('whatsapp_number', FALLBACK_WHATSAPP).then(setWaNumber).catch(() => {});
     getSetting('home_hotel_image', DEFAULT_HOTEL_IMG).then(setHotelImg).catch(() => {});
@@ -113,9 +121,13 @@ export default function HomePage() {
             className={`absolute inset-0 grid place-items-center bg-cover bg-center px-6 pb-24 pt-20 transition-opacity duration-1000 ${
               index === slide ? 'z-[5] opacity-100' : 'pointer-events-none opacity-0'
             }`}
-            style={{
-              backgroundImage: `linear-gradient(rgba(30,18,10,0.45), rgba(30,18,10,0.65)), url('${item.image}')`,
-            }}
+            style={
+              index <= maxLoaded
+                ? {
+                    backgroundImage: `linear-gradient(rgba(30,18,10,0.45), rgba(30,18,10,0.65)), url('${item.image}')`,
+                  }
+                : undefined
+            }
           >
             <div
               className={`max-w-3xl text-center transition-all delay-300 duration-700 ${
