@@ -15,6 +15,7 @@ const lazyPanel = (load) => dynamic(load, { ssr: false, loading: PanelLoading })
 
 const OrdersBoard = lazyPanel(() => import('../../components/admin/OrdersBoard'));
 const ServeurBoard = lazyPanel(() => import('../../components/admin/ServeurBoard'));
+const CaissePanel = lazyPanel(() => import('../../components/admin/CaissePanel'));
 const RequestsBoard = lazyPanel(() => import('../../components/admin/RequestsBoard'));
 const RoomsPanel = lazyPanel(() => import('../../components/admin/RoomsPanel'));
 const MenuPanel = lazyPanel(() => import('../../components/admin/MenuPanel'));
@@ -97,6 +98,9 @@ const SECTIONS = {
   bar: { title: 'Carte du bar', subtitle: 'Boissons, prix et stock du bar' },
   'qr-salon': { title: 'QR codes des salons', subtitle: 'Créez et imprimez les QR codes des salons' },
   'my-tables': { title: 'Mes tables', subtitle: 'Les commandes des tables dont vous êtes responsable' },
+  'caisse-hotel': { title: 'Caisse Hôtel', subtitle: 'Fond de caisse, encaissements et clôture de la réception' },
+  'caisse-resto': { title: 'Caisse Restaurant', subtitle: 'Fond de caisse, encaissements et clôture du restaurant' },
+  'caisse-bar': { title: 'Caisse Bar', subtitle: 'Fond de caisse, encaissements et clôture du bar' },
 };
 
 const NAV_LABELS = {
@@ -115,15 +119,18 @@ const NAV_LABELS = {
   bar: 'Carte',
   'qr-salon': 'QR codes',
   'my-tables': 'Mes tables',
+  'caisse-hotel': 'Caisse',
+  'caisse-resto': 'Caisse',
+  'caisse-bar': 'Caisse',
 };
 
 const TOP_SECTIONS = [
   { key: 'mes-tables', label: 'Mes tables', icon: 'utensils', items: ['my-tables'] },
   { key: 'stats', label: 'Stats', icon: 'overview', items: ['overview'] },
   { key: 'audit', label: 'Audit', icon: 'audit', items: ['audit'] },
-  { key: 'hotel', label: 'Hôtel', icon: 'bed', items: ['orders-rooms', 'requests', 'rooms', 'qr-room'] },
-  { key: 'restaurant', label: 'Restaurant', icon: 'utensils', items: ['orders-resto', 'restaurant', 'qr-table'] },
-  { key: 'bar', label: 'Bar', icon: 'wine', items: ['orders-bar', 'bar', 'qr-salon'] },
+  { key: 'hotel', label: 'Hôtel', icon: 'bed', items: ['orders-rooms', 'caisse-hotel', 'requests', 'rooms', 'qr-room'] },
+  { key: 'restaurant', label: 'Restaurant', icon: 'utensils', items: ['orders-resto', 'caisse-resto', 'restaurant', 'qr-table'] },
+  { key: 'bar', label: 'Bar', icon: 'wine', items: ['orders-bar', 'caisse-bar', 'bar', 'qr-salon'] },
   { key: 'equipe', label: 'Équipe', icon: 'users', items: ['staff'] },
   { key: 'reglages', label: 'Réglages', icon: 'settings', items: ['settings'] },
 ];
@@ -131,9 +138,9 @@ const TOP_SECTIONS = [
 const ROLE_SECTIONS = {
   // « Mes tables » n'a de sens que pour un serveur, qui a un pôle rattaché.
   superadmin: Object.keys(SECTIONS).filter((key) => key !== 'my-tables'),
-  reception: ['orders-rooms', 'requests', 'rooms', 'qr-room'],
-  resto: ['orders-resto', 'restaurant', 'qr-table'],
-  bar: ['orders-bar', 'bar', 'qr-salon'],
+  reception: ['orders-rooms', 'caisse-hotel', 'requests', 'rooms', 'qr-room'],
+  resto: ['orders-resto', 'caisse-resto', 'restaurant', 'qr-table'],
+  bar: ['orders-bar', 'caisse-bar', 'bar', 'qr-salon'],
   serveur: ['my-tables'],
 };
 
@@ -506,6 +513,9 @@ export default function AdminPage() {
         {['orders-rooms', 'orders-resto', 'orders-bar'].includes(section) ? (
           <OrdersBoard boardKey={section} refreshTick={refreshTick} setBadge={setBadge} />
         ) : null}
+        {section === 'caisse-hotel' ? <CaissePanel sector="hotel" refreshTick={refreshTick} /> : null}
+        {section === 'caisse-resto' ? <CaissePanel sector="resto" refreshTick={refreshTick} /> : null}
+        {section === 'caisse-bar' ? <CaissePanel sector="bar" refreshTick={refreshTick} /> : null}
         {section === 'my-tables' ? (
           <ServeurBoard staff={staff} refreshTick={refreshTick} setBadge={setBadge} />
         ) : null}

@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node scripts/test-serveur.mjs"
+    "test": "node scripts/test-serveur.mjs && node scripts/test-paiement.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
