@@ -54,14 +54,35 @@ export default function OrdersBoard({ boardKey, refreshTick, setBadge }) {
   const config = BOARDS[boardKey];
   const [orders, setOrders] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [names, setNames] = useState({});
 
   const load = useCallback(async () => {
-    let query = db.from('orders').select('*, order_items(*)').order('created_at', { ascending: false }).limit(80);
-    query = config.filter(query);
-    const { data } = await query;
-    setOrders(data || []);
-    const activeCount = (data || []).filter((order) => config.active.includes(order.status)).length;
-    setBadge(boardKey, activeCount);
+    // Deux requêtes : l'historique récent, et TOUTES les commandes encore à
+    // traiter. Sans la seconde, une commande oubliée depuis longtemps sortirait
+    // des 80 plus récentes et disparaîtrait silencieusement du tableau.
+    const recent = () =>
+      config
+        .filter(db.from('orders').select('*, order_items(*), qr_points(*)'))
+        .order('created_at', { ascending: false });
+
+    const [{ data: activeRows }, { data: recentRows }, { data: staffRows }] = await Promise.all([
+      recent().in('status', config.active).limit(300),
+      recent().limit(80),
+      db.from('admins').select('id, full_name, email'),
+    ]);
+
+    const nameMap = {};
+    (staffRows || []).forEach((member) => {
+      nameMap[member.id] = member.full_name || member.email;
+    });
+    setNames(nameMap);
+
+    const merged = new Map();
+    [...(activeRows || []), ...(recentRows || [])].forEach((order) => merged.set(order.id, order));
+    const data = [...merged.values()];
+
+    setOrders(data);
+    setBadge(boardKey, data.filter((order) => config.active.includes(order.status)).length);
   }, [boardKey, config, setBadge]);
 
   useEffect(() => {
@@ -153,7 +174,22 @@ export default function OrdersBoard({ boardKey, refreshTick, setBadge }) {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((order) => {
             const withActions = actionable.includes(order.status);
-            const originName = (order.origin_type === 'room' ? 'Chambre ' : '') + order.origin_label.trim();
+            const originName = (order.origin_type === 'room' ? 'Chambre ' : '') + (order.origin_label || '').trim();
+
+            // Suivi du serveur : seules les tables et les salons ont un
+            // responsable ; les commandes des chambres passent par la réception.
+            const ownerName = names[order.qr_points?.assigned_to] || null;
+            const takerName = names[order.received_by] || null;
+            const waiting = ['sent', 'preparing'].includes(order.status) && !order.received_at;
+            const serveurLine =
+              order.origin_type === 'room'
+                ? null
+                : order.received_at
+                  ? `Pris en charge par ${takerName || 'un serveur'}`
+                  : ownerName
+                    ? `${ownerName}${waiting ? ' — pas encore pris en charge' : ''}`
+                    : 'Aucun serveur assigné';
+
             return (
               <article
                 key={order.id}
@@ -168,6 +204,15 @@ export default function OrdersBoard({ boardKey, refreshTick, setBadge }) {
                   </div>
                   <Badge tone={STATUS_BADGE[order.status]}>{STATUS_LABELS[order.status]}</Badge>
                 </div>
+                {serveurLine ? (
+                  <p
+                    className={`text-[0.82rem] font-semibold ${
+                      order.received_at ? 'text-green-700' : waiting ? 'text-red-700' : 'text-brand-muted'
+                    }`}
+                  >
+                    {serveurLine}
+                  </p>
+                ) : null}
                 <div className="grid gap-2">
                   {(order.order_items || []).map((line) => (
                     <div key={line.id} className="flex items-center gap-2.5 text-[0.92rem]">

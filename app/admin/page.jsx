@@ -5,15 +5,24 @@ import { useRouter } from 'next/navigation';
 import { db } from '../../lib/supabase';
 import { ROLE_LABELS, beep, initSound, notify, flashTitle } from '../../lib/adminShared';
 import { toastSuccess, warnLowStock } from '../../lib/alerts';
-import OrdersBoard from '../../components/admin/OrdersBoard';
-import RequestsBoard from '../../components/admin/RequestsBoard';
-import RoomsPanel from '../../components/admin/RoomsPanel';
-import MenuPanel from '../../components/admin/MenuPanel';
-import AuditPanel from '../../components/admin/AuditPanel';
-import StaffPanel from '../../components/admin/StaffPanel';
-import SettingsPanel from '../../components/admin/SettingsPanel';
-import StatsPanel from '../../components/admin/StatsPanel';
-import QrPanel from '../../components/admin/QrPanel';
+import dynamic from 'next/dynamic';
+
+// Chaque panneau est téléchargé seulement quand on l'ouvre. Un serveur ou un
+// cuisinier ne charge donc pas les statistiques, l'export Excel ni le
+// générateur de QR codes — ce qui compte sur un téléphone en 3G.
+const PanelLoading = () => <p className="py-10 text-center text-brand-muted">Chargement...</p>;
+const lazyPanel = (load) => dynamic(load, { ssr: false, loading: PanelLoading });
+
+const OrdersBoard = lazyPanel(() => import('../../components/admin/OrdersBoard'));
+const ServeurBoard = lazyPanel(() => import('../../components/admin/ServeurBoard'));
+const RequestsBoard = lazyPanel(() => import('../../components/admin/RequestsBoard'));
+const RoomsPanel = lazyPanel(() => import('../../components/admin/RoomsPanel'));
+const MenuPanel = lazyPanel(() => import('../../components/admin/MenuPanel'));
+const AuditPanel = lazyPanel(() => import('../../components/admin/AuditPanel'));
+const StaffPanel = lazyPanel(() => import('../../components/admin/StaffPanel'));
+const SettingsPanel = lazyPanel(() => import('../../components/admin/SettingsPanel'));
+const StatsPanel = lazyPanel(() => import('../../components/admin/StatsPanel'));
+const QrPanel = lazyPanel(() => import('../../components/admin/QrPanel'));
 
 const ICONS = {
   overview: (
@@ -87,6 +96,7 @@ const SECTIONS = {
   'orders-bar': { title: 'Commandes', subtitle: 'Commandes des salons et des chambres en temps réel' },
   bar: { title: 'Carte du bar', subtitle: 'Boissons, prix et stock du bar' },
   'qr-salon': { title: 'QR codes des salons', subtitle: 'Créez et imprimez les QR codes des salons' },
+  'my-tables': { title: 'Mes tables', subtitle: 'Les commandes des tables dont vous êtes responsable' },
 };
 
 const NAV_LABELS = {
@@ -104,9 +114,11 @@ const NAV_LABELS = {
   'orders-bar': 'Commandes',
   bar: 'Carte',
   'qr-salon': 'QR codes',
+  'my-tables': 'Mes tables',
 };
 
 const TOP_SECTIONS = [
+  { key: 'mes-tables', label: 'Mes tables', icon: 'utensils', items: ['my-tables'] },
   { key: 'stats', label: 'Stats', icon: 'overview', items: ['overview'] },
   { key: 'audit', label: 'Audit', icon: 'audit', items: ['audit'] },
   { key: 'hotel', label: 'Hôtel', icon: 'bed', items: ['orders-rooms', 'requests', 'rooms', 'qr-room'] },
@@ -117,11 +129,12 @@ const TOP_SECTIONS = [
 ];
 
 const ROLE_SECTIONS = {
-  superadmin: Object.keys(SECTIONS),
+  // « Mes tables » n'a de sens que pour un serveur, qui a un pôle rattaché.
+  superadmin: Object.keys(SECTIONS).filter((key) => key !== 'my-tables'),
   reception: ['orders-rooms', 'requests', 'rooms', 'qr-room'],
   resto: ['orders-resto', 'restaurant', 'qr-table'],
   bar: ['orders-bar', 'bar', 'qr-salon'],
-  serveur: ['orders-resto', 'orders-bar'],
+  serveur: ['my-tables'],
 };
 
 function Badge({ count }) {
@@ -146,25 +159,53 @@ export default function AdminPage() {
     setBadges((current) => (current[key] === count ? current : { ...current, [key]: count }));
   }, []);
 
-  // Garde d'authentification + rôle
+  // Garde d'authentification + rôle.
+  // Rejouée toutes les minutes : un compte supprimé ou désactivé depuis
+  // l'onglet Équipe perd son accès sans attendre un rechargement de page.
   useEffect(() => {
-    (async () => {
+    let stopped = false;
+
+    async function check() {
       const {
         data: { session },
       } = await db.auth.getSession();
+      if (stopped) return;
       if (!session) {
         router.replace('/admin/login');
         return;
       }
-      const { data: row } = await db.from('admins').select('role, full_name').eq('email', session.user.email).maybeSingle();
-      if (!row) {
+      const { data: row, error } = await db
+        .from('admins')
+        .select('*')
+        .eq('email', session.user.email)
+        .maybeSingle();
+      if (stopped) return;
+      // En cas de coupure réseau on garde la session en place : seule une
+      // réponse claire de la base (compte absent ou désactivé) déconnecte.
+      if (error) return;
+      if (!row || !row.is_active) {
         await db.auth.signOut();
         router.replace('/admin/login');
         return;
       }
       setEmail(session.user.email);
-      setStaff(row);
-    })();
+      setStaff((current) =>
+        current &&
+        current.id === row.id &&
+        current.role === row.role &&
+        current.full_name === row.full_name &&
+        current.sector === row.sector
+          ? current
+          : row,
+      );
+    }
+
+    check();
+    const timer = setInterval(check, 60000);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+    };
   }, [router]);
 
   const sections = useMemo(() => (staff ? ROLE_SECTIONS[staff.role] || [] : []), [staff]);
@@ -262,8 +303,10 @@ export default function AdminPage() {
         return entersResto;
       case 'bar':
         return entersBar;
+      // Le serveur est prévenu par son propre tableau (« Mes tables »), qui
+      // sait quelles tables lui sont assignées — le shell l'ignore.
       case 'serveur':
-        return entersResto || entersBar;
+        return false;
       case 'superadmin':
         return entersReception || entersResto || entersBar;
       default:
@@ -462,6 +505,9 @@ export default function AdminPage() {
         {section === 'settings' ? <SettingsPanel /> : null}
         {['orders-rooms', 'orders-resto', 'orders-bar'].includes(section) ? (
           <OrdersBoard boardKey={section} refreshTick={refreshTick} setBadge={setBadge} />
+        ) : null}
+        {section === 'my-tables' ? (
+          <ServeurBoard staff={staff} refreshTick={refreshTick} setBadge={setBadge} />
         ) : null}
         {section === 'requests' ? <RequestsBoard refreshTick={refreshTick} setBadge={setBadge} /> : null}
         {section === 'rooms' ? <RoomsPanel /> : null}
