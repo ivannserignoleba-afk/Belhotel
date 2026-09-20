@@ -43,6 +43,33 @@ const KPI_ICONS = {
   ),
 };
 
+// PostgREST plafonne chaque réponse (1000 lignes par défaut). On pagine donc
+// jusqu'au bout : sinon le chiffre d'affaires de la période « Tout » serait
+// silencieusement sous-évalué dès que le complexe dépasse ce nombre de commandes.
+const PAGE_SIZE = 1000;
+const MAX_PAGES = 200; // garde-fou : 200 000 commandes
+
+async function fetchAllOrders(since) {
+  const rows = [];
+  for (let page = 0; page < MAX_PAGES; page += 1) {
+    let query = db
+      .from('orders')
+      .select('*, order_items(item_name, qty, unit_price)')
+      .order('created_at', { ascending: true })
+      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+    if (since) query = query.gte('created_at', since.toISOString());
+
+    const { data, error } = await query;
+    if (error) {
+      showError('Chargement des statistiques incomplet : ' + error.message);
+      break;
+    }
+    rows.push(...(data || []));
+    if (!data || data.length < PAGE_SIZE) break;
+  }
+  return rows;
+}
+
 export default function StatsPanel({ refreshTick }) {
   const [period, setPeriod] = useState('today');
   const [data, setData] = useState(null);
@@ -56,14 +83,12 @@ export default function StatsPanel({ refreshTick }) {
       since.setDate(since.getDate() - (days - 1));
     }
 
-    let query = db.from('orders').select('*, order_items(item_name, qty, unit_price)').limit(2000);
-    if (since) query = query.gte('created_at', since.toISOString());
-    const [{ data: orders }, requestsRes] = await Promise.all([
-      query,
+    const [orders, requestsRes] = await Promise.all([
+      fetchAllOrders(since),
       db.from('service_requests').select('*', { count: 'exact', head: true }).neq('status', 'done'),
     ]);
 
-    setData({ orders: orders || [], openRequests: requestsRes.count ?? 0, days });
+    setData({ orders, openRequests: requestsRes.count ?? 0, days });
   }, [period]);
 
   useEffect(() => {
@@ -106,8 +131,11 @@ export default function StatsPanel({ refreshTick }) {
   const bySection = { resto: { count: 0, revenue: 0 }, bar: { count: 0, revenue: 0 } };
   const roomOrders = { count: 0, revenue: 0 };
   valid.forEach((order) => {
-    bySection[order.target].count += 1;
-    bySection[order.target].revenue += order.total || 0;
+    const bucket = bySection[order.target];
+    if (bucket) {
+      bucket.count += 1;
+      bucket.revenue += order.total || 0;
+    }
     if (order.origin_type === 'room') {
       roomOrders.count += 1;
       roomOrders.revenue += order.total || 0;
@@ -207,7 +235,7 @@ export default function StatsPanel({ refreshTick }) {
         detail.push([
           date.toLocaleDateString('fr-FR'),
           date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-          (order.origin_type === 'room' ? 'Chambre ' : '') + order.origin_label.trim(),
+          (order.origin_type === 'room' ? 'Chambre ' : '') + (order.origin_label || '').trim(),
           order.target === 'resto' ? 'Restaurant' : 'Bar',
           STATUS_FR[order.status] || order.status,
           order.total || 0,

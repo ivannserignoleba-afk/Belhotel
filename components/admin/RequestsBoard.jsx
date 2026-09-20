@@ -48,7 +48,7 @@ export default function RequestsBoard({ refreshTick, setBadge }) {
     >
       <div className="flex items-start justify-between gap-2">
         <div>
-          <strong className="block">Chambre {request.origin_label.trim()}</strong>
+          <strong className="block">Chambre {(request.origin_label || '').trim()}</strong>
           <span className="text-xs text-brand-muted">{timeAgo(request.created_at)}</span>
         </div>
         <Badge tone={REQUEST_BADGE[request.status]}>{REQUEST_LABELS[request.status]}</Badge>

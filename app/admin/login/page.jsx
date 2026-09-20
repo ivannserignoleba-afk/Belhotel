@@ -40,14 +40,18 @@ export default function AdminLoginPage() {
 
     const { data: staff } = await db
       .from('admins')
-      .select('role')
+      .select('role, is_active')
       .eq('email', email.trim().toLowerCase())
       .maybeSingle();
 
-    if (!staff) {
+    if (!staff || !staff.is_active) {
       await db.auth.signOut();
       setBusy(false);
-      setError('Ce compte n’a pas accès à l’espace de gestion.');
+      setError(
+        staff
+          ? 'Ce compte a été désactivé. Rapprochez-vous de votre direction.'
+          : 'Ce compte n’a pas accès à l’espace de gestion.',
+      );
       return;
     }
 
