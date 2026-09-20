@@ -38,23 +38,42 @@ function BulkQr({ type, readOnly = false }) {
 
   const actives = (points || []).filter((point) => point.is_active);
 
+  // Un clic à la fois. Sans ce verrou, deux clics rapprochés sur « + »
+  // calculaient le même numéro avant que l'écran ne se rafraîchisse et
+  // créaient deux fois la même table — ce qui est arrivé le 14/08/2026.
+  const [working, setWorking] = useState(false);
+
   async function add() {
-    const nextNumber = Math.max(0, ...actives.map(pointNumber)) + 1;
-    const nextLabel = `${base} ${nextNumber}`;
-    const existing = (points || []).find((point) => point.label.trim().toLowerCase() === nextLabel.toLowerCase());
-    const { error } = existing
-      ? await db.from('qr_points').update({ is_active: true }).eq('id', existing.id)
-      : await db.from('qr_points').insert([{ type, label: nextLabel }]);
-    if (error) showError(error.message);
-    else load();
+    if (working) return;
+    setWorking(true);
+    try {
+      const nextNumber = Math.max(0, ...actives.map(pointNumber)) + 1;
+      const nextLabel = `${base} ${nextNumber}`;
+      const existing = (points || []).find((point) => point.label.trim().toLowerCase() === nextLabel.toLowerCase());
+      const { error } = existing
+        ? await db.from('qr_points').update({ is_active: true }).eq('id', existing.id)
+        : await db.from('qr_points').insert([{ type, label: nextLabel }]);
+      // 23505 = la base a refusé un nom déjà pris. C'est le cas quand un
+      // collègue vient de créer le même numéro depuis un autre poste : ce
+      // n'est pas une erreur pour l'utilisateur, on recharge simplement.
+      if (error && error.code !== '23505') showError(error.message);
+      await load();
+    } finally {
+      setWorking(false);
+    }
   }
 
   async function removeLast() {
-    if (!actives.length) return;
-    const last = actives.reduce((a, b) => (pointNumber(a) >= pointNumber(b) ? a : b));
-    const { error } = await db.from('qr_points').update({ is_active: false }).eq('id', last.id);
-    if (error) showError(error.message);
-    else load();
+    if (working || !actives.length) return;
+    setWorking(true);
+    try {
+      const last = actives.reduce((a, b) => (pointNumber(a) >= pointNumber(b) ? a : b));
+      const { error } = await db.from('qr_points').update({ is_active: false }).eq('id', last.id);
+      if (error) showError(error.message);
+      else await load();
+    } finally {
+      setWorking(false);
+    }
   }
 
   async function printAll() {
@@ -75,7 +94,8 @@ function BulkQr({ type, readOnly = false }) {
                 type="button"
                 aria-label="Retirer"
                 onClick={removeLast}
-                className="grid h-11 w-11 place-items-center rounded-full border border-brand-line bg-brand-soft text-xl hover:border-brand-dark hover:text-brand-deep"
+                disabled={working}
+                className="grid h-11 w-11 place-items-center rounded-full border border-brand-line bg-brand-soft text-xl hover:border-brand-dark hover:text-brand-deep disabled:opacity-40"
               >
                 −
               </button>
@@ -86,7 +106,8 @@ function BulkQr({ type, readOnly = false }) {
                 type="button"
                 aria-label="Ajouter"
                 onClick={add}
-                className="grid h-11 w-11 place-items-center rounded-full border border-brand-line bg-brand-soft text-xl hover:border-brand-dark hover:text-brand-deep"
+                disabled={working}
+                className="grid h-11 w-11 place-items-center rounded-full border border-brand-line bg-brand-soft text-xl hover:border-brand-dark hover:text-brand-deep disabled:opacity-40"
               >
                 +
               </button>
@@ -161,7 +182,12 @@ function RoomQr({ readOnly = false }) {
     const { error } = await db.from('qr_points').insert([{ type: 'room', label: room.name.trim(), room_id: roomId }]);
     setBusy(false);
     if (error) {
-      showError(error.message);
+      showError(
+        error.code === '23505'
+          ? `Un QR code existe déjà pour « ${room.name.trim()} ».`
+          : error.message,
+      );
+      load();
       return;
     }
     setOpen(false);
